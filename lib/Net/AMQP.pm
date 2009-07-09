@@ -39,8 +39,37 @@ This module implements the frame (de)serialization and representation of the Adv
 use strict;
 use warnings;
 use Net::AMQP::Protocol;
+use Net::AMQP::Frame;
+use Carp;
 
 our $VERSION = 0.1;
+
+sub parse_raw_frames {
+    my ($class, $input_ref) = @_;
+
+    my @frames;
+    while (length $$input_ref) {
+        my ($type_id, $channel, $size) = unpack 'CnN', substr $$input_ref, 0, 7, '';
+        if (! defined $size) {
+            croak "Frame payload size not found in input";
+        }
+        my $payload = substr $$input_ref, 0, $size, '';
+        if (length $payload != $size) {
+            croak "Frame payload size $payload != header size $size";
+        }
+        my $frame_end_octet = unpack 'C', substr $$input_ref, 0, 1, '';
+        if ($frame_end_octet != 206) {
+            croak "Invalid frame-end octet ($frame_end_octet)";
+        }
+
+        push @frames, Net::AMQP::Frame->factory(
+            type_id => $type_id,
+            channel => $channel,
+            payload => $payload,
+        );
+    }
+    return @frames;
+}
 
 =head1 COPYRIGHT
 

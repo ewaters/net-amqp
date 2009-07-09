@@ -2,7 +2,6 @@ package Net::AMQP::Common;
 
 use strict;
 use warnings;
-use Term::ANSIColor qw(:constants); # for show_invis();
 use base qw(Exporter);
 
 our @EXPORT_OK = qw(
@@ -36,7 +35,9 @@ our %data_type_map = (
 );
 
 sub pack_octet {
-    pack 'C', shift;
+    my $int = shift;
+    $int = 0 unless defined $int;
+    pack 'C', $int;
 }
 
 sub unpack_octet {
@@ -45,7 +46,9 @@ sub unpack_octet {
 }
 
 sub pack_short_integer {
-    pack 'n', shift;
+    my $int = shift;
+    $int = 0 unless defined $int;
+    pack 'n', $int;
 }
 
 sub unpack_short_integer {
@@ -54,7 +57,9 @@ sub unpack_short_integer {
 }
 
 sub pack_long_integer {
-    pack 'N', shift;
+    my $int = shift;
+    $int = 0 unless defined $int;
+    pack 'N', $int;
 }
 
 sub unpack_long_integer {
@@ -64,6 +69,7 @@ sub unpack_long_integer {
 
 sub pack_long_long_integer {
     my $value = shift;
+    $value = 0 unless defined $value;
 
     my $lower = $value & 0xffffffff;
     my $upper = ($value & ~0xffffffff) >> 32;
@@ -81,6 +87,7 @@ sub unpack_timestamp { unpack_long_long_integer(@_) }
 
 sub pack_field_table {
     my $table = shift;
+    $table = {} unless defined $table;
 
     my $table_packed = '';
     while (my ($key, $value) = each %$table) {
@@ -140,7 +147,9 @@ sub unpack_field_table {
 }
 
 sub pack_short_string {
-    return pack('C', length $_[0]) . $_[0];
+    my $str = shift;
+    $str = '' unless defined $str;
+    return pack('C', length $str) . $str;
 }
 
 sub unpack_short_string {
@@ -156,7 +165,9 @@ sub pack_long_string {
         # Here for Connection::StartOk->response
         return pack_field_table(@_);
     }
-    return pack('N', length $_[0]) . $_[0];
+    my $str = shift;
+    $str = '' unless defined $str;
+    return pack('N', length $str) . $str;
 }
 
 sub unpack_long_string {
@@ -167,26 +178,19 @@ sub unpack_long_string {
 
 sub show_invis {
     my $input = shift;
-    my $debug = 1;
 
-    my @char_map = qw/
-        nul soh stx etx eot enq ack bel bs ht lf vt ff cr so si
-        dle dc1 dc2 dc3 dc4 nak syn etb can em sub esc fs gs rs us
-    /;
-    $char_map[127] = 'del';
+    my $return = '';
 
     foreach my $char (split(//, $input)) {
-        my $num = unpack('C',$char);
-        if (($num < 32 || $num == 127 || $num > 128) && $num != 10) {
-            if (defined $char_map[$num]) {
-                print RED, "^$char_map[$num]"."[$num]", RESET;
-            } else {
-                print RED, "[$num]", RESET;
-            }
-        } else {
-            print $char;
-            print "($num)" if $debug;
+        my $num = unpack 'C', $char;
+        if (0 && $char =~ m{^[0-9A-Za-z]$}) {
+            $return .= $char;
+        }
+        else {
+            $return .= sprintf '\%03d', $num;
         }
     }
+
+    return $return;
 }
 

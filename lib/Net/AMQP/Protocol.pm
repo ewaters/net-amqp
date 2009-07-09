@@ -3,7 +3,8 @@ package Net::AMQP::Protocol;
 use strict;
 use warnings;
 use Data::Dumper;
-use Net::AMQP::Common qw(%data_type_map);
+use Net::AMQP::Common qw(:all);
+use Net::AMQP::Protocol::Base;
 
 our $VERSION_MAJOR = 8;
 our $VERSION_MINOR = 0;
@@ -180,17 +181,19 @@ EOF
             $method_spec->{responses}{ $base_class_name . '::' . $key } = delete $method_spec->{responses}{$key};
         }
 
-        my $base_type = $method_spec->{method_id} ? 'Method' : 'Header';
+        #my $base_type = $method_spec->{method_id} ? 'Method' : 'Header';
 
         eval <<EOF;
 package $method_class_name;
 
 use strict;
 use warnings;
-use base qw(Net::AMQP::Protocol::Base$base_type);
+use base qw(Net::AMQP::Protocol::Base);
 
 #print __PACKAGE__ . " has been created\\n";
 EOF
+        die $@ if $@;
+
         $method_class_name->class_id($class_spec->{class_id});
         $method_class_name->method_id($method_spec->{method_id});
         $method_class_name->class_spec($class_spec);
@@ -198,55 +201,6 @@ EOF
         $method_class_name->frame_arguments(\@frame_arguments);
         $method_class_name->register();
     }
-}
-
-sub parse_raw_frame {
-    my ($class, $input_ref) = @_;
-
-    # Unpack the 4.2.3 General Frame Format (but sans 'cycle field')
-
-    my ($type, $channel, $size) = unpack 'CnN', substr $$input_ref, 0, 7, '';
-    my $frame_end_octet = unpack 'C', substr $$input_ref, -1, 1, '';
-    #print "Type: $type, channel: $channel, size: $size, frame end: $frame_end_octet, remaining: ".length($input)."\n";
-
-    if ($size != length $$input_ref) {
-        warn "Remaining size of server input ".length($$input_ref)." != announced size $size\n$type, $channel, $size: $$input_ref";
-    }
-
-    my %return = (
-        type      => $type,
-        channel   => $channel,
-        size      => $size,
-        input_ref => $input_ref,
-    );
-
-    if ($type == 1) {
-        # 4.2.4 Method Frames
-
-        my ($class_id, $method_id) = unpack 'nn', substr $$input_ref, 0, 4, '';
-        #$self->{Logger}->debug("4.2.4 Method Frames has class-id: $class_id, method-id: $method_id");
-
-        my $frame = Net::AMQP::Protocol->parse_method_frame($class_id, $method_id, $input_ref);
-
-        $return{method_frame} = $frame;
-    }
-    else {
-        die "Don't know yet how to handle server input of type $type: ".Dumper(\%return);
-    }
-
-    return \%return;
-}
-
-sub parse_method_frame {
-    my ($self_class, $class_id, $method_id, $input_ref) = @_;
-
-    my $method_class = $registered_methods{ join ':', $class_id, $method_id };
-    if (! $method_class) {
-        print STDERR "Failed to find a method class to handle $class_id:$method_id\n".Dumper(\%registered_methods);
-        return undef;
-    }
-
-    return $method_class->parse_raw_frame($input_ref);
 }
 
 1;

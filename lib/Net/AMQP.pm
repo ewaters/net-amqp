@@ -6,28 +6,32 @@ Net::AMQP - Advanced Message Queue Protocol (de)serialization and representation
 
 =head1 SYNOPSIS
 
-  use Net::AMQP::Protocol;
+  use Net::AMQP;
 
   Net::AMQP::Protocol->load_xml_spec('amqp0-8.xml');
 
   ...
 
-  my $input_parsed = Net::AMQP::Protocol->parse_raw_frame(\$input);
+  my @frames = Net::AMQP->parse_raw_frames(\$input);
   
   ...
 
-  if ($input_parsed->{method_frame}->isa('Net::AMQP::Protocol::Connection::Start')) {
-      my $output = Net::AMQP::Protocol::Connection::StartOk->new(
-          client_properties => { ... },
-          mechanism         => 'AMQPLAIN',
-          locale            => 'en_US',
-          response          => {
-              LOGIN    => 'guest',
-              PASSWORD => 'guest',
-          },
-      );
-
-      print OUT $output->to_raw_frame();
+  foreach my $frame (@frames) {
+      if ($frame->can('method_frame') && $frame->method_frame->isa('Net::AMQP::Protocol::Connection::Start')) {
+          my $output = Net::AMQP::Frame::Method->new(
+              channel => 0,
+              method_frame => Net::AMQP::Protocol::Connection::StartOk->new(
+                  client_properties => { ... },
+                  mechanism         => 'AMQPLAIN',
+                  locale            => 'en_US',
+                  response          => {
+                      LOGIN    => 'guest',
+                      PASSWORD => 'guest',
+                  },
+              ),
+          );
+          print OUT $output->to_raw_frame();
+      }
   }
 
 =head1 DESCRIPTION
@@ -43,6 +47,18 @@ use Net::AMQP::Frame;
 use Carp;
 
 our $VERSION = 0.1;
+
+=head1 CLASS METHODS
+
+=head2 parse_raw_frames ($string_ref)
+
+=over 4
+
+Given a scalar reference to a binary string, return a list of L<Net::AMQP::Frame> objects, consuming the data in the string.  Croaks on invalid input.
+
+=back
+
+=cut
 
 sub parse_raw_frames {
     my ($class, $input_ref) = @_;
@@ -70,6 +86,10 @@ sub parse_raw_frames {
     }
     return @frames;
 }
+
+=head1 SEE ALSO
+
+L<POE::Component::Client::AMQP>
 
 =head1 COPYRIGHT
 

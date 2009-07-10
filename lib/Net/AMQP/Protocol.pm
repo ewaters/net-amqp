@@ -1,40 +1,71 @@
 package Net::AMQP::Protocol;
 
+=head1 NAME
+
+Net::AMQP::Protocol - Loading code of the AMQP spec
+
+=head1 DESCRIPTION
+
+This class serves as a loader for the auto-generated classes of the protocol.
+
+=cut
+
 use strict;
 use warnings;
-use Data::Dumper;
 use Net::AMQP::Common qw(:all);
 use Net::AMQP::Protocol::Base;
+use XML::LibXML;
 
-our $VERSION_MAJOR = 8;
-our $VERSION_MINOR = 0;
-our %spec;
+our ($VERSION_MAJOR, $VERSION_MINOR, %spec);
+
+=head1 CLASS METHODS
+
+=head2 header
+
+=over 4
+
+Returns a binary string representing the header of any AMQP communications
+
+=back
+
+=cut
 
 sub header {
     'AMQP' . pack 'C*', 1, 1, $VERSION_MAJOR, $VERSION_MINOR;
 }
 
-my %registered_methods; # class names keyed on ${class_id}:${method_id}
+=head2 load_xml_spec ($xml_fn)
 
-sub register_method_type {
-    my ($self_class, $class, $class_id, $method_id) = @_;
+=over 4
 
-    my $key = join ':', $class_id, $method_id;
-    if ($registered_methods{$key}) {
-        die "Key '$key' is already registered with $registered_methods{$key} and won't be redefined to $class";
-    }
-    $registered_methods{$key} = $class;
-}
+Reads in the AMQP XML specifications file, XML document node <amqp>, and generates subclasses of L<Net::AMQP::Protocol::Base> for each frame type.
 
-# Use all the protocol classes *after* register_method_type exists
+Names are normalized, as demonstrated by this example:
 
-#require Net::AMQP::Protocol::Connection;
-#require Net::AMQP::Protocol::Channel;
+  <class name='basic'>
+    <method name='consume-ok'>
+      <field name='consumer tag'>
+    </method>
+  </class>
+
+creates the class L<Net::AMQP::Protocol::Basic::ConsumeOk> with the field accessor L<consumer_tag()>, allowing you to create a new object as such:
+
+  my $method = Net::AMQP::Protocol::Basic::ConsumeOk->new(
+      consumer_tag => 'blah'
+  );
+
+  print $method->consumer_tag() . "\n";
+  if ($method->class_id == 60 && $method->method_name == 21) {
+    # do something
+  }
+
+=back
+
+=cut
 
 sub load_xml_spec {
     my ($class, $xml_fn) = @_;
 
-    require XML::LibXML;
     my $parser = XML::LibXML->new();
     my $doc = $parser->parse_file($xml_fn);
     my $root = $doc->documentElement;
@@ -47,7 +78,7 @@ sub load_xml_spec {
 
     $VERSION_MAJOR = $root->getAttribute('major');
     $VERSION_MINOR = $root->getAttribute('minor');
-    print "Using spec from '" . $root->getAttribute('comment') . "'\n";
+    #print "Using spec from '" . $root->getAttribute('comment') . "'\n";
 
     foreach my $child ($root->childNodes) {
         my $nodeName = $child->nodeName;
@@ -115,9 +146,6 @@ sub load_xml_spec {
             _build_class(\%class);
         }
     }
-
-    #print Dumper(\%spec);
-    #exit;
 }
 
 sub _normalize_name {
@@ -136,20 +164,6 @@ sub _build_class {
     my $class_spec = shift;
 
     my $base_class_name = 'Net::AMQP::Protocol::' . $class_spec->{name};
-
-=cut
-    eval <<EOF;
-package $base_class_name;
-
-use strict;
-use warnings;
-use base qw(Net::AMQP::Protocol::Base);
-
-#print __PACKAGE__ . " has been created\\n";
-EOF
-
-    $base_class_name->class_id($class_spec->{class_id});
-=cut
 
     foreach my $method_spec (@{ $class_spec->{methods} }) {
         my $method_class_name = $base_class_name . '::' . $method_spec->{name};
@@ -181,16 +195,12 @@ EOF
             $method_spec->{responses}{ $base_class_name . '::' . $key } = delete $method_spec->{responses}{$key};
         }
 
-        #my $base_type = $method_spec->{method_id} ? 'Method' : 'Header';
-
         eval <<EOF;
 package $method_class_name;
 
 use strict;
 use warnings;
 use base qw(Net::AMQP::Protocol::Base);
-
-#print __PACKAGE__ . " has been created\\n";
 EOF
         die $@ if $@;
 
@@ -202,5 +212,21 @@ EOF
         $method_class_name->register();
     }
 }
+
+=head1 SEE ALSO
+
+L<Net::AMQP>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2009 Eric Waters and XMission LLC (http://www.xmission.com/).  All rights reserved.  This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the LICENSE file included with this module.
+
+=head1 AUTHOR
+
+Eric Waters <ewaters@gmail.com>
+
+=cut
 
 1;

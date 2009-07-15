@@ -27,6 +27,8 @@ use Net::AMQP::Frame::Method;
 use Net::AMQP::Frame::Header;
 use Net::AMQP::Frame::Body;
 
+our $VERSION = 0.01;
+
 =head1 CLASS METHODS
 
 =head2 new (...)

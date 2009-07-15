@@ -1,37 +1,26 @@
-package Net::AMQP::Frame::Body;
+package Net::AMQP::Frame::OOBHeader;
 
 =head1 NAME
 
-Net::AMQP::Frame::Body - AMQP wire-level body Frame object
+Net::AMQP::Frame::OOBHeader - AMQP wire-level out-of-band header Frame object
 
 =head1 DESCRIPTION 
 
-Inherits from L<Net::AMQP::Frame>.
+Inherits from L<Net::AMQP::Frame::Header>.
 
 =cut
 
 use strict;
 use warnings;
-use base qw(Net::AMQP::Frame);
+use base qw(Net::AMQP::Frame::Header);
 
-__PACKAGE__->type_id(3);
+__PACKAGE__->type_id(5);
 
 our $VERSION = 0.01;
 
-sub parse_payload { 
-    my $self = shift;
-
-    # Nothing to be done; it's already there
-}
-
-sub to_raw_payload {
-    my $self = shift;
-    return $self->payload;
-}
-
 =head1 SEE ALSO
 
-L<Net::AMQP::Frame>
+L<Net::AMQP::Frame::Header>
 
 =head1 COPYRIGHT
 

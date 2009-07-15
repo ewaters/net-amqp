@@ -1,37 +1,26 @@
-package Net::AMQP::Frame::Body;
+package Net::AMQP::Frame::OOBMethod;
 
 =head1 NAME
 
-Net::AMQP::Frame::Body - AMQP wire-level body Frame object
+Net::AMQP::Frame::OOBMethod - AMQP wire-level out-of-band method Frame object
 
 =head1 DESCRIPTION 
 
-Inherits from L<Net::AMQP::Frame>.
+Inherits from L<Net::AMQP::Frame::Method>.
 
 =cut
 
 use strict;
 use warnings;
-use base qw(Net::AMQP::Frame);
+use base qw(Net::AMQP::Frame::Method);
 
-__PACKAGE__->type_id(3);
+__PACKAGE__->type_id(4);
 
 our $VERSION = 0.01;
 
-sub parse_payload { 
-    my $self = shift;
-
-    # Nothing to be done; it's already there
-}
-
-sub to_raw_payload {
-    my $self = shift;
-    return $self->payload;
-}
-
 =head1 SEE ALSO
 
-L<Net::AMQP::Frame>
+L<Net::AMQP::Frame::Method>
 
 =head1 COPYRIGHT
 

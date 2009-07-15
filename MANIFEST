@@ -1,0 +1,23 @@
+Build.PL
+lib/Net/AMQP.pm
+lib/Net/AMQP/Common.pm
+lib/Net/AMQP/Frame.pm
+lib/Net/AMQP/Frame/Body.pm
+lib/Net/AMQP/Frame/Header.pm
+lib/Net/AMQP/Frame/Heartbeat.pm
+lib/Net/AMQP/Frame/Method.pm
+lib/Net/AMQP/Frame/OOBBody.pm
+lib/Net/AMQP/Frame/OOBHeader.pm
+lib/Net/AMQP/Frame/OOBMethod.pm
+lib/Net/AMQP/Frame/Trace.pm
+lib/Net/AMQP/Protocol.pm
+lib/Net/AMQP/Protocol/Base.pm
+LICENSE
+MANIFEST			This list of files
+META.yml
+README
+spec/amqp0-8.xml
+spec/amqp0-9.xml
+t/01_basic.t
+t/02_ruby_protocol_doc.t
+Makefile.PL

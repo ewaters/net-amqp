@@ -24,6 +24,8 @@ BEGIN {
     );
 }
 
+our $VERSION = 0.01;
+
 =head1 CLASS METHODS
 
 =over 4

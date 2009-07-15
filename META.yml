@@ -1,0 +1,61 @@
+---
+name: Net-AMQP
+version: 0.01
+author:
+  - 'Eric Waters <ewaters@gmail.com>'
+abstract: Advanced Message Queue Protocol (de)serialization and representation
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  Class::Accessor: 0
+  Class::Data::Inheritable: 0
+  Params::Validate: 0
+  XML::LibXML: 0
+build_requires:
+  Test::Deep: 0
+  Test::More: 0
+provides:
+  Net::AMQP:
+    file: lib/Net/AMQP.pm
+    version: 0.01
+  Net::AMQP::Common:
+    file: lib/Net/AMQP/Common.pm
+    version: 0.01
+  Net::AMQP::Frame:
+    file: lib/Net/AMQP/Frame.pm
+    version: 0.01
+  Net::AMQP::Frame::Body:
+    file: lib/Net/AMQP/Frame/Body.pm
+    version: 0.01
+  Net::AMQP::Frame::Header:
+    file: lib/Net/AMQP/Frame/Header.pm
+    version: 0.01
+  Net::AMQP::Frame::Heartbeat:
+    file: lib/Net/AMQP/Frame/Heartbeat.pm
+    version: 0.01
+  Net::AMQP::Frame::Method:
+    file: lib/Net/AMQP/Frame/Method.pm
+    version: 0.01
+  Net::AMQP::Frame::OOBBody:
+    file: lib/Net/AMQP/Frame/OOBBody.pm
+    version: 0.01
+  Net::AMQP::Frame::OOBHeader:
+    file: lib/Net/AMQP/Frame/OOBHeader.pm
+    version: 0.01
+  Net::AMQP::Frame::OOBMethod:
+    file: lib/Net/AMQP/Frame/OOBMethod.pm
+    version: 0.01
+  Net::AMQP::Frame::Trace:
+    file: lib/Net/AMQP/Frame/Trace.pm
+    version: 0.01
+  Net::AMQP::Protocol:
+    file: lib/Net/AMQP/Protocol.pm
+    version: 0.01
+  Net::AMQP::Protocol::Base:
+    file: lib/Net/AMQP/Protocol/Base.pm
+    version: 0.01
+generated_by: Module::Build version 0.33
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4

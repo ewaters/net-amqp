@@ -16,6 +16,7 @@ use Net::AMQP::Common qw(:all);
 use Net::AMQP::Protocol::Base;
 use XML::LibXML;
 
+our $VERSION = 0.01;
 our ($VERSION_MAJOR, $VERSION_MINOR, %spec);
 
 =head1 CLASS METHODS

@@ -1,1 +1,62 @@
-Placeholder
+NAME
+    Net::AMQP - Advanced Message Queue Protocol (de)serialization and
+    representation
+
+SYNOPSIS
+      use Net::AMQP;
+
+      Net::AMQP::Protocol->load_xml_spec('amqp0-8.xml');
+
+      ...
+
+      my @frames = Net::AMQP->parse_raw_frames(\$input);
+      
+  ...
+
+      foreach my $frame (@frames) {
+          if ($frame->can('method_frame') && $frame->method_frame->isa('Net::AMQP::Protocol::Connection::Start')) {
+              my $output = Net::AMQP::Frame::Method->new(
+                  channel => 0,
+                  method_frame => Net::AMQP::Protocol::Connection::StartOk->new(
+                      client_properties => { ... },
+                      mechanism         => 'AMQPLAIN',
+                      locale            => 'en_US',
+                      response          => {
+                          LOGIN    => 'guest',
+                          PASSWORD => 'guest',
+                      },
+                  ),
+              );
+              print OUT $output->to_raw_frame();
+          }
+      }
+
+DESCRIPTION
+    This module implements the frame (de)serialization and representation of
+    the Advanced Message Queue Protocol (http://www.amqp.org/). It is to be
+    used in conjunction with client or server software that does the actual
+    TCP/IP communication. While it's being written with AMQP version 0-8 in
+    mind, as the spec is defined by an external xml file, support for 0-9,
+    0-9-1 and eventually 0-10 is hoped for.
+
+CLASS METHODS
+  parse_raw_frames ($string_ref)
+        Given a scalar reference to a binary string, return a list of
+        Net::AMQP::Frame objects, consuming the data in the string. Croaks
+        on invalid input.
+
+SEE ALSO
+    POE::Component::Client::AMQP
+
+COPYRIGHT
+    Copyright (c) 2009 Eric Waters and XMission LLC
+    (http://www.xmission.com/). All rights reserved. This program is free
+    software; you can redistribute it and/or modify it under the same terms
+    as Perl itself.
+
+    The full text of the license can be found in the LICENSE file included
+    with this module.
+
+AUTHOR
+    Eric Waters <ewaters@gmail.com>
+

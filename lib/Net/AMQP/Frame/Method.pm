@@ -26,6 +26,8 @@ BEGIN {
 }
 __PACKAGE__->type_id(1);
 
+our $VERSION = 0.01;
+
 =head1 OBJECT METHODS
 
 =over 4

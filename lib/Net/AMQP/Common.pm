@@ -58,6 +58,8 @@ use strict;
 use warnings;
 use base qw(Exporter);
 
+our $VERSION = 0.01;
+
 our @EXPORT_OK = qw(
     pack_octet             unpack_octet
     pack_short_integer     unpack_short_integer
@@ -174,7 +176,8 @@ sub pack_field_table {
     $table = {} unless defined $table;
 
     my $table_packed = '';
-    while (my ($key, $value) = each %$table) {
+    foreach my $key (sort keys %$table) { # sort so I can compare raw frames
+        my $value = $table->{$key};
         $table_packed .= pack_short_string($key);
         if (ref $value) {
             $table_packed .= 'F' . pack_field_table($value);

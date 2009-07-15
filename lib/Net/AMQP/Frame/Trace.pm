@@ -1,8 +1,8 @@
-package Net::AMQP::Frame::Body;
+package Net::AMQP::Frame::Trace;
 
 =head1 NAME
 
-Net::AMQP::Frame::Body - AMQP wire-level body Frame object
+Net::AMQP::Frame::Trace - AMQP wire-level trace Frame object
 
 =head1 DESCRIPTION 
 
@@ -14,20 +14,9 @@ use strict;
 use warnings;
 use base qw(Net::AMQP::Frame);
 
-__PACKAGE__->type_id(3);
+__PACKAGE__->type_id(7);
 
 our $VERSION = 0.01;
-
-sub parse_payload { 
-    my $self = shift;
-
-    # Nothing to be done; it's already there
-}
-
-sub to_raw_payload {
-    my $self = shift;
-    return $self->payload;
-}
 
 =head1 SEE ALSO
 
@@ -46,3 +35,4 @@ Eric Waters <ewaters@gmail.com>
 =cut
 
 1;
+

@@ -1,6 +1,6 @@
 ---
 name: Net-AMQP
-version: 0.01
+version: 0.01.1
 author:
   - 'Eric Waters <ewaters@gmail.com>'
 abstract: Advanced Message Queue Protocol (de)serialization and representation
@@ -14,11 +14,11 @@ requires:
   XML::LibXML: 0
 build_requires:
   Test::Deep: 0
-  Test::More: 0
+  Test::More: 0.88
 provides:
   Net::AMQP:
     file: lib/Net/AMQP.pm
-    version: 0.01
+    version: 0.01.1
   Net::AMQP::Common:
     file: lib/Net/AMQP/Common.pm
     version: 0.01

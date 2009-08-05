@@ -1,0 +1,6 @@
+0.01.1  Wed, 05 Aug 2009 09:33:09 -0600
+    - Fixed typo in t/02_ruby_protocol_doc.t for detecting skip
+    - Added version requirement for Test::More to support done_testing()
+
+0.01  Wed, 15 Jul 2009 14:33:48 -0600
+    - First working version released to CPAN

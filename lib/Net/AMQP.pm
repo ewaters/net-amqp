@@ -46,7 +46,7 @@ use Net::AMQP::Protocol;
 use Net::AMQP::Frame;
 use Carp;
 
-our $VERSION = 0.01;
+our $VERSION = '0.01.1';
 
 =head1 CLASS METHODS
 

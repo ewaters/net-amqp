@@ -24,7 +24,7 @@ SKIP: {
 
     eval { require Parse::RecDescent };
 
-    skip "Parse::RecDescent not installed", 22 if @_;
+    skip "Parse::RecDescent not installed", 22 if $@;
 
     my $debug = 0;
 

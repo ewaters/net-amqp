@@ -16,6 +16,7 @@ LICENSE
 MANIFEST			This list of files
 META.yml
 README
+CHANGES
 spec/amqp0-8.xml
 spec/amqp0-9.xml
 t/01_basic.t

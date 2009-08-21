@@ -15,6 +15,7 @@ use warnings;
 use Net::AMQP::Common qw(:all);
 use Net::AMQP::Protocol::Base;
 use XML::LibXML;
+use File::Path;
 
 our $VERSION = 0.01;
 our ($VERSION_MAJOR, $VERSION_MINOR, %spec);
@@ -23,11 +24,7 @@ our ($VERSION_MAJOR, $VERSION_MINOR, %spec);
 
 =head2 header
 
-=over 4
-
 Returns a binary string representing the header of any AMQP communications
-
-=back
 
 =cut
 
@@ -35,11 +32,9 @@ sub header {
     'AMQP' . pack 'C*', 1, 1, $VERSION_MAJOR, $VERSION_MINOR;
 }
 
-=head2 load_xml_spec ($xml_fn)
+=head2 load_xml_spec
 
-=over 4
-
-Reads in the AMQP XML specifications file, XML document node <amqp>, and generates subclasses of L<Net::AMQP::Protocol::Base> for each frame type.
+Pass in the XML filename.  Reads in the AMQP XML specifications file, XML document node <amqp>, and generates subclasses of L<Net::AMQP::Protocol::Base> for each frame type.
 
 Names are normalized, as demonstrated by this example:
 
@@ -49,7 +44,7 @@ Names are normalized, as demonstrated by this example:
     </method>
   </class>
 
-creates the class L<Net::AMQP::Protocol::Basic::ConsumeOk> with the field accessor L<consumer_tag()>, allowing you to create a new object as such:
+creates the class L<Net::AMQP::Protocol::Basic::ConsumeOk> with the field accessor C<consumer_tag()>, allowing you to create a new object as such:
 
   my $method = Net::AMQP::Protocol::Basic::ConsumeOk->new(
       consumer_tag => 'blah'
@@ -60,15 +55,13 @@ creates the class L<Net::AMQP::Protocol::Basic::ConsumeOk> with the field access
     # do something
   }
 
-=back
-
 =cut
 
 sub load_xml_spec {
-    my ($class, $xml_fn) = @_;
+    my ($class, $xml_fn, $xml_str_ref) = @_;
 
     my $parser = XML::LibXML->new();
-    my $doc = $parser->parse_file($xml_fn);
+    my $doc = defined $xml_fn ? $parser->parse_file($xml_fn) : $parser->parse_string($$xml_str_ref);
     my $root = $doc->documentElement;
 
     # Header
@@ -106,11 +99,28 @@ sub load_xml_spec {
                 );
                 
                 foreach my $child_field ($child_method->getChildrenByTagName('field')) {
-                    push @{ $method{fields} }, {
+                    my $field = {
                         map { $_->name => $_->getValue }
                         grep { defined $_ }
                         $child_field->attributes
                     };
+
+                    my @doc;
+                    if ($child_field->firstChild && $child_field->firstChild->nodeType == 3) {
+                        @doc = ( $child_field->firstChild->textContent );
+                    }
+                    foreach my $doc ($child_field->getChildrenByTagName('doc')) {
+                        next if $doc->hasAttribute('name');
+                        push @doc, $doc->textContent;
+                    }
+                    foreach my $i (0 .. $#doc) {
+                        $doc[$i] =~ s{[\n\t]}{ }g;
+                        $doc[$i] =~ s{\s{2,}}{ }g;
+                        $doc[$i] =~ s{^\s*}{};
+                    }
+                    $field->{doc} = join "\n\n", @doc;
+
+                    push @{ $method{fields} }, $field;
                 }
 
                 foreach my $child_response ($child_method->getChildrenByTagName('response')) {
@@ -211,6 +221,50 @@ EOF
         $method_class_name->method_spec($method_spec);
         $method_class_name->frame_arguments(\@frame_arguments);
         $method_class_name->register();
+    }
+}
+
+=head2 full_docs_to_dir
+
+  Net::AMQP::Protocol->full_docs_to_dir($dir, $format);
+
+Using the dynamically generated classes, this will create 'pod' or 'pm' files in the target directory in the following format:
+
+  $dir/Net::AMQP::Protocol::Basic::Publish.pod
+  (or with format 'pm')
+  $dir/Net/AMQP/Protocol/Basic/Publish.pm
+
+The directory will be created if it doesn't exist.
+
+=cut
+
+sub full_docs_to_dir {
+    my ($class, $dir, $format) = @_;
+    $class = ref $class if ref $class;
+    $format ||= 'pod';
+
+    foreach my $service_name (sort keys %{ $spec{class} }) {
+        foreach my $method (sort { $a->{name} cmp $b->{name} } @{ $spec{class}{$service_name}{methods} }) {
+            my $method_class = 'Net::AMQP::Protocol::' . $service_name . '::' . $method->{name};
+
+            my $pod = $method_class->docs_as_pod;
+            my $filename;
+
+            if ($format eq 'pod') {
+                $filename = $dir . '/' . $method_class . '.pod';
+            }
+            elsif ($format eq 'pm') {
+                $filename = $dir . '/' . $method_class . '.pm';
+                $filename =~ s{::}{/}g;
+            }
+
+            my ($base_path) = $filename =~ m{^(.+)/[^/]+$};
+            -d $base_path || mkpath($base_path) || die "Can't mkpath $base_path: $!";
+
+            open my $podfn, '>', $filename or die "Can't open '$filename' for writing: $!";
+            print $podfn $pod;
+            close $podfn;
+        }
     }
 }
 

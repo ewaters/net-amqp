@@ -6,7 +6,7 @@ Net::AMQP::Protocol::Base - Base class of auto-generated protocol classes
 
 =head1 DESCRIPTION
 
-See L<Net::AMQP::Protocol::load_xml_spec()> for how subclasses to this class are auto-generated.
+See L<Net::AMQP::Protocol/load_xml_spec> for how subclasses to this class are auto-generated.
 
 =cut
 
@@ -28,13 +28,13 @@ our $VERSION = 0.01;
 
 =head1 CLASS METHODS
 
-=over 4
+=head2 class_id
 
-=item I<class_id>
+The class id from the specficiation.
 
-=item I<method_id>
+=head2 method_id
 
-In the case of a content <class> (such as Basic, File or Stream), method_id is 0 for the virtual ContentHeader method.  This allows you to create a Header frame in much the same way you create a Method frame, but with the virtual method 'ContentHeader'.  For example:
+The method id from the specification.  In the case of a content <class> (such as Basic, File or Stream), method_id is 0 for the virtual ContentHeader method.  This allows you to create a Header frame in much the same way you create a Method frame, but with the virtual method 'ContentHeader'.  For example:
 
   my $header_frame = Net::AMQP::Protocol::Basic::ContentHeader->new(
     content_type => 'text/html'
@@ -42,7 +42,7 @@ In the case of a content <class> (such as Basic, File or Stream), method_id is 0
 
   print $header_frame->method_id(); # prints '0'
 
-=item I<frame_arguments>
+=head2 frame_arguments
 
 Contains an ordered arrayref of the fields that comprise a frame for this method.  For example:
 
@@ -52,11 +52,11 @@ Contains an ordered arrayref of the fields that comprise a frame for this method
 
 This is used by the L<Net::AMQP::Frame> subclasses to (de)serialize raw binary data.  Each of these fields are also an accessor for the class objects.
 
-=item I<class_spec>
+=head2 class_spec
 
 Contains the hashref that the C<load_xml_spec()> call generated for this class.
 
-=item I<method_spec>
+=head2 method_spec
 
 Same as above, but for this method.
 
@@ -95,11 +95,7 @@ sub register {
 
 =head2 frame_wrap
 
-=over 4
-
 Returns a L<Net::AMQP::Frame> subclass object that wraps the given object, if possible.
-
-=back
 
 =cut
 
@@ -115,6 +111,101 @@ sub frame_wrap {
     else {
         return $self;
     }
+}
+
+sub docs_as_pod {
+    my $class = shift;
+    my $package = __PACKAGE__;
+
+    my $class_spec = $class->class_spec;
+    my $method_spec = $class->method_spec;
+    my $frame_arguments = $class->frame_arguments;
+    
+    my $description = "This is an auto-generated subclass of L<$package>; see the docs for that module for inherited methods.  Check the L</USAGE> below for details on the auto-generated methods within this class.\n";
+
+    if ($class->method_id == 0) {
+        my $base_class = 'Net::AMQP::Protocol::' . $class_spec->{name};
+        $description .= "\n" . <<EOF;
+This class is not a real class of the AMQP spec.  Instead, it's a helper class that allows you to create L<Net::AMQP::Frame::Header> objects for L<$base_class> frames.
+EOF
+    }
+    else {
+        $description .= "\n" . "This class implements the class B<$$class_spec{name}> (id ".$class->class_id.") method B<$$method_spec{name}> (id ".$class->method_id."), which is ".($method_spec->{synchronous} ? 'a synchronous' : 'an asynchronous')." method\n";
+    }
+
+    my $synopsis_new_args = '';
+    my $usage = <<EOF;
+ =head2 Fields and Accessors
+
+Each of the following represents a field in the specification.  These are the optional arguments to B<new()> and are also read/write accessors.
+
+ =over
+
+EOF
+
+    use Data::Dumper;
+    #$usage .= Dumper($method_spec);
+
+    foreach my $field_spec (@{ $method_spec->{fields} }) {
+        my $type = $field_spec->{type}; # may be 'undef'
+        if ($field_spec->{domain}) {
+            $type = $Net::AMQP::Protocol::spec{domain}{ $field_spec->{domain} }{type};
+        }
+
+        my $local_name = $field_spec->{name};
+        $local_name =~ s{ }{_}g;
+
+        $field_spec->{doc} ||= '';
+
+        $usage .= <<EOF;
+ =item I<$local_name> (type: $type)
+
+$$field_spec{doc}
+
+EOF
+
+        $synopsis_new_args .= <<EOF;
+      $local_name => \$$local_name,
+EOF
+    }
+
+    chomp $synopsis_new_args; # trailing \n
+
+    $usage .= "=back\n\n";
+
+
+    my $pod = <<EOF;
+ =pod
+
+ =head1 NAME
+
+$class - An auto-generated subclass of $package
+
+ =head1 SYNOPSIS
+
+  use $class;
+
+  my \$object = $class\->new(
+$synopsis_new_args
+  );
+
+ =head1 DESCRIPTION
+
+$description
+
+ =head1 USAGE
+
+$usage
+
+ =head1 SEE ALSO
+
+L<$package>
+
+EOF
+
+    $pod =~ s{^ =}{=}gms;
+
+    return $pod;
 }
 
 =head1 SEE ALSO

@@ -26,6 +26,11 @@ BEGIN {
 use Net::AMQP::Frame::Method;
 use Net::AMQP::Frame::Header;
 use Net::AMQP::Frame::Body;
+use Net::AMQP::Frame::OOBMethod;
+use Net::AMQP::Frame::OOBHeader;
+use Net::AMQP::Frame::OOBBody;
+use Net::AMQP::Frame::Trace;
+use Net::AMQP::Frame::Heartbeat;
 
 our $VERSION = 0.01;
 

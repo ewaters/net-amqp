@@ -18,6 +18,15 @@ __PACKAGE__->type_id(8);
 
 our $VERSION = 0.01;
 
+sub parse_payload {
+    my $self = shift;
+}
+
+sub to_raw_payload {
+    my $self = shift;
+    return '';
+}
+
 =head1 SEE ALSO
 
 L<Net::AMQP::Frame>

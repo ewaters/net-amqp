@@ -69,7 +69,7 @@ sub parse_raw_frames {
         }
         my $payload = substr $$input_ref, 0, $size, '';
         if (length $payload != $size) {
-            croak "Frame payload size $payload != header size $size";
+            croak "Frame payload size ".length($payload)." != header size $size";
         }
         my $frame_end_octet = unpack 'C', substr $$input_ref, 0, 1, '';
         if ($frame_end_octet != 206) {

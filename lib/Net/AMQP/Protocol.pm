@@ -95,6 +95,7 @@ sub load_xml_spec {
                     name        => _normalize_name($child_method->getAttribute('name')),
                     method_id   => $child_method->getAttribute('index'),
                     synchronous => $child_method->getAttribute('synchronous'),
+                    content     => $child_method->getAttribute('content'),
                     responses   => {},
                 );
                 

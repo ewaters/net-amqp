@@ -42,6 +42,10 @@ The following are available for exporting by name or by ':all'.  All the 'pack_*
 
 =item I<unpack_field_table>
 
+=item I<pack_field_array>
+
+=item I<unpack_field_array>
+
 =item I<%data_type_map>
 
 A mapping of the XML spec's data type names to our names ('longstr' => 'long_string')
@@ -69,6 +73,7 @@ our @EXPORT_OK = qw(
     pack_short_string      unpack_short_string
     pack_long_string       unpack_long_string
     pack_field_table       unpack_field_table
+    pack_field_array       unpack_field_array
     show_ascii
     %data_type_map
 );
@@ -88,6 +93,7 @@ our %data_type_map = (
     longstr   => 'long_string',
     timestamp => 'timestamp',
     table     => 'field_table',
+    array     => 'field_array',
 );
 
 sub pack_octet {
@@ -179,19 +185,42 @@ sub pack_field_table {
     foreach my $key (sort keys %$table) { # sort so I can compare raw frames
         my $value = $table->{$key};
         $table_packed .= pack_short_string($key);
-        if (ref $value) {
-            $table_packed .= 'F' . pack_field_table($value);
-        }
-        else {
-            # FIXME - assuming that all values are string values
-            $table_packed .= 'S' . pack_long_string($value);
-        }
+        $table_packed .= _pack_field_value($table->{$key});
     }
-
     return pack('N', length $table_packed) . $table_packed;
 }
 
-my %_unpack_field_table_types = (
+sub pack_field_array {
+    my $array = shift;
+    $array = [] unless defined $array;
+
+    my $array_packed = '';
+    foreach my $value (@$array) {
+        $array_packed .= _pack_field_value($value);
+    }
+
+    return pack('N', length $array_packed) . $array_packed;
+}
+
+sub _pack_field_value {
+    my ($value) = @_;
+    if (not ref $value) {
+        # FIXME - assuming that all values are string values
+        'S' . pack_long_string($value)
+    }
+    elsif (ref($value) eq 'HASH') {
+        'F' . pack_field_table($value)
+    }
+    elsif (ref($value) eq 'ARRAY') {
+        'A' . pack_field_array($value)
+    }
+    else {
+        die "No way to pack $value into field table";
+    }
+}
+
+
+my %_unpack_field_types = (
     S => sub { unpack_long_string(@_) },
     I => sub { unpack_long_integer(@_) }, # FIXME - This should be signed; is this supported here?
     D => sub {
@@ -202,6 +231,7 @@ my %_unpack_field_table_types = (
     },
     T => sub { unpack_timestamp(@_) },
     F => sub { unpack_field_table(@_) },
+    A => sub { unpack_field_array(@_) },
 );
 
 sub unpack_field_table {
@@ -216,7 +246,7 @@ sub unpack_field_table {
         my $field_name = unpack_short_string(\$table_input);
 
         my ($field_value_type) = substr $table_input, 0, 1, '';
-        my $field_value_subref = $_unpack_field_table_types{$field_value_type};
+        my $field_value_subref = $_unpack_field_types{$field_value_type};
         die "No way to unpack field '$field_name' type '$field_value_type'" unless defined $field_value_subref;
 
         my $field_value = $field_value_subref->(\$table_input);
@@ -226,6 +256,28 @@ sub unpack_field_table {
     }
 
     return \%table;
+}
+
+sub unpack_field_array {
+    my $input_ref = shift;
+
+    my ($array_length) = unpack 'N', substr $$input_ref, 0, 4, '';
+
+    my $array_input = substr $$input_ref, 0, $array_length, '';
+
+    my @array;
+    while (length $array_input) {
+        my $field_value_type = substr $array_input, 0, 1, '';
+        my $field_value_subref = $_unpack_field_types{$field_value_type};
+        die "No way to unpack field array element ".@array." type '$field_value_type'" unless defined $field_value_subref;
+
+        my $field_value = $field_value_subref->(\$array_input);
+        die "Failed to unpack field array element ".@array." type '$field_value_type' ('$array_input')" unless defined $field_value;
+
+        push @array, $field_value;
+    }
+
+    return \@array;
 }
 
 sub show_ascii {

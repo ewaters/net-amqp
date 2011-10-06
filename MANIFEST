@@ -15,6 +15,7 @@ lib/Net/AMQP/Protocol/Base.pm
 LICENSE
 MANIFEST			This list of files
 META.yml
+META.json
 README
 CHANGES
 spec/amqp0-8.xml

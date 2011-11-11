@@ -26,7 +26,7 @@ BEGIN {
 }
 __PACKAGE__->type_id(1);
 
-our $VERSION = 0.01;
+our $VERSION = 0.0102;
 
 =head1 OBJECT METHODS
 

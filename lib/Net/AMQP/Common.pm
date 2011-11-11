@@ -62,7 +62,7 @@ use strict;
 use warnings;
 use base qw(Exporter);
 
-our $VERSION = 0.0102;
+our $VERSION = 0.02;
 
 our @EXPORT_OK = qw(
     pack_octet             unpack_octet

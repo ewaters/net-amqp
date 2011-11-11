@@ -46,3 +46,5 @@
 \B\._
 # Avoid archives of this distribution
 \bNet-AMQP-[\d\.\_]+
+^MYMETA\.yml$
+^MYMETA\.json$

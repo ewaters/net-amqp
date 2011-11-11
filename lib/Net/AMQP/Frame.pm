@@ -32,7 +32,7 @@ use Net::AMQP::Frame::OOBBody;
 use Net::AMQP::Frame::Trace;
 use Net::AMQP::Frame::Heartbeat;
 
-our $VERSION = 0.0102;
+our $VERSION = 0.02;
 
 =head1 CLASS METHODS
 

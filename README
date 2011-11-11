@@ -10,8 +10,8 @@ SYNOPSIS
       ...
 
       my @frames = Net::AMQP->parse_raw_frames(\$input);
-      
-  ...
+  
+      ...
 
       foreach my $frame (@frames) {
           if ($frame->can('method_frame') && $frame->method_frame->isa('Net::AMQP::Protocol::Connection::Start')) {
@@ -35,18 +35,22 @@ DESCRIPTION
     This module implements the frame (de)serialization and representation of
     the Advanced Message Queue Protocol (http://www.amqp.org/). It is to be
     used in conjunction with client or server software that does the actual
-    TCP/IP communication. While it's being written with AMQP version 0-8 in
-    mind, as the spec is defined by an external xml file, support for 0-9,
-    0-9-1 and eventually 0-10 is hoped for.
+    TCP/IP communication.
 
 CLASS METHODS
-  parse_raw_frames ($string_ref)
-        Given a scalar reference to a binary string, return a list of
-        Net::AMQP::Frame objects, consuming the data in the string. Croaks
-        on invalid input.
+  parse_raw_frames
+      Net::AMQP->parse_raw_frames(\$binary_payload)
+
+    Given a scalar reference to a binary string, return a list of
+    Net::AMQP::Frame objects, consuming the data in the string. Croaks on
+    invalid input.
 
 SEE ALSO
     POE::Component::Client::AMQP
+
+TODO
+    At the moment, only AMQP v0-8 is supported. Support for v0-10 and later
+    v1-0 is hoped for.
 
 COPYRIGHT
     Copyright (c) 2009 Eric Waters and XMission LLC

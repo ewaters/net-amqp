@@ -11,6 +11,7 @@ lib/Net/AMQP/Frame/OOBHeader.pm
 lib/Net/AMQP/Frame/OOBMethod.pm
 lib/Net/AMQP/Frame/Trace.pm
 lib/Net/AMQP/Protocol.pm
+lib/Net/AMQP/Protocol/v0_8.pm
 lib/Net/AMQP/Protocol/Base.pm
 LICENSE
 MANIFEST			This list of files
@@ -20,6 +21,9 @@ README
 CHANGES
 spec/amqp0-8.xml
 spec/amqp0-9.xml
+spec/amqp0-10.xml
+spec/qpid.amqp0-8.xml
 t/01_basic.t
 t/02_ruby_protocol_doc.t
+t/04_autodocs.t
 Makefile.PL

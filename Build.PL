@@ -4,6 +4,7 @@ my $build = Module::Build->new(
     module_name => 'Net::AMQP',
     license => 'perl',
     build_requires => {
+        'File::Temp' => 0.19,
         'Test::More' => 0.88,
         'Test::Deep' => 0,
     },

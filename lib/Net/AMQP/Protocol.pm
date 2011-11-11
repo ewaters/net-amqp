@@ -17,7 +17,7 @@ use Net::AMQP::Protocol::Base;
 use XML::LibXML;
 use File::Path;
 
-our $VERSION = 0.01;
+our $VERSION = 0.0102;
 our ($VERSION_MAJOR, $VERSION_MINOR, %spec);
 
 =head1 CLASS METHODS
@@ -95,6 +95,7 @@ sub load_xml_spec {
                     name        => _normalize_name($child_method->getAttribute('name')),
                     method_id   => $child_method->getAttribute('index'),
                     synchronous => $child_method->getAttribute('synchronous'),
+                    content     => $child_method->getAttribute('content'),
                     responses   => {},
                 );
                 

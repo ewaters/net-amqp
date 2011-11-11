@@ -16,7 +16,7 @@ use base qw(Net::AMQP::Frame);
 
 __PACKAGE__->type_id(8);
 
-our $VERSION = 0.01;
+our $VERSION = 0.0102;
 
 sub parse_payload {
     my $self = shift;

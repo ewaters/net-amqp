@@ -24,7 +24,7 @@ BEGIN {
     );
 }
 
-our $VERSION = 0.01;
+our $VERSION = 0.0102;
 
 =head1 CLASS METHODS
 

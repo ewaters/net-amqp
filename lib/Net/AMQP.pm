@@ -46,7 +46,12 @@ use Net::AMQP::Protocol;
 use Net::AMQP::Frame;
 use Carp;
 
-our $VERSION = '0.01.1';
+our $VERSION = 0.0102;
+
+use constant {
+    _HEADER_LEN => 7,  # 'CnN'
+    _FOOTER_LEN => 1,  # 'C'
+};
 
 =head1 CLASS METHODS
 
@@ -62,16 +67,14 @@ sub parse_raw_frames {
     my ($class, $input_ref) = @_;
 
     my @frames;
-    while (length $$input_ref) {
-        my ($type_id, $channel, $size) = unpack 'CnN', substr $$input_ref, 0, 7, '';
-        if (! defined $size) {
-            croak "Frame payload size not found in input";
-        }
+    while (length($$input_ref) >= _HEADER_LEN + _FOOTER_LEN) {
+        my ($type_id, $channel, $size) = unpack 'CnN', $$input_ref;
+        last if length($$input_ref) < _HEADER_LEN + $size + _FOOTER_LEN;
+        substr $$input_ref, 0, _HEADER_LEN, '';
+
         my $payload = substr $$input_ref, 0, $size, '';
-        if (length $payload != $size) {
-            croak "Frame payload size ".length($payload)." != header size $size";
-        }
-        my $frame_end_octet = unpack 'C', substr $$input_ref, 0, 1, '';
+
+        my $frame_end_octet = unpack 'C', substr $$input_ref, 0, _FOOTER_LEN, '';
         if ($frame_end_octet != 206) {
             croak "Invalid frame-end octet ($frame_end_octet)";
         }

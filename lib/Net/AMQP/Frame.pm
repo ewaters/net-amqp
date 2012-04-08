@@ -10,7 +10,6 @@ use strict;
 use warnings;
 use base qw(Class::Data::Inheritable Class::Accessor);
 use Net::AMQP::Common qw(:all);
-use Params::Validate qw(validate validate_with);
 use Carp;
 
 BEGIN {
@@ -60,12 +59,12 @@ Will attempt to identify a L<Net::AMQP::Frame> subclass for further parsing, and
 =cut
 
 sub factory {
-    my $class = shift;
-    my %args = validate(@_, {
-        type_id => 1,
-        channel => 1,
-        payload => 1,
-    });
+    my ($class, %args) = @_;
+
+    unless (exists $args{type_id}) { croak "Mandatory parameter 'type_id' missing in call to Net::AMQP::Frame::factory"; }
+    unless (exists $args{channel}) { croak "Mandatory parameter 'channel' missing in call to Net::AMQP::Frame::factory"; }
+    unless (exists $args{payload}) { croak "Mandatory parameter 'payload' missing in call to Net::AMQP::Frame::factory"; }
+    unless (keys %args == 3)       { croak "Invalid parameter passed in call to Net::AMQP::Frame::factory"; }
 
     my $subclass;
     if ($args{type_id} == 1) {

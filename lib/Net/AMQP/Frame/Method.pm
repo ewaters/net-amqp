@@ -111,11 +111,7 @@ sub parse_payload {
             next;
         }
 
-        {
-            no strict 'refs';
-            my $method = 'Net::AMQP::Common::unpack_' . $type;
-            $value = *{$method}->($payload_ref);
-        }
+        $value = unpack_argument($type, $payload_ref);
 
         if (! defined $value) {
             die "Failed to unpack type '$type' for key '$key' for frame of type '$method_class' from input '$$payload_ref'";
@@ -164,9 +160,7 @@ sub to_raw_payload {
         }
 
         if (! defined $value) {
-            no strict 'refs';
-            my $method = 'Net::AMQP::Common::pack_' . $type;
-            $value = *{$method}->($method_frame->{$key});
+            $value = pack_argument($type, $method_frame->{$key});
         }
 
         if (! defined $value) {

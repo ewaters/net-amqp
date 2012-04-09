@@ -9,7 +9,6 @@ my $build = Module::Build->new(
         'Test::Deep' => 0,
     },
     requires => {
-        'Params::Validate' => 0,
         'Class::Accessor' => 0,
         'Class::Data::Inheritable' => 0,
         'XML::LibXML' => 0,

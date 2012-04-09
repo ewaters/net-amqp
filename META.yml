@@ -61,7 +61,6 @@ provides:
 requires:
   Class::Accessor: 0
   Class::Data::Inheritable: 0
-  Params::Validate: 0
   XML::LibXML: 0
 resources:
   license: http://dev.perl.org/licenses/

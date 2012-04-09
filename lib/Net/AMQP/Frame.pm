@@ -8,7 +8,7 @@ Net::AMQP::Frame - AMQP wire-level Frame object
 
 use strict;
 use warnings;
-use base qw(Class::Data::Inheritable Class::Accessor);
+use base qw(Class::Data::Inheritable Class::Accessor::Fast);
 use Net::AMQP::Common qw(:all);
 use Carp;
 

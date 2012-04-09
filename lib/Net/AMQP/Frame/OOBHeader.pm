@@ -16,7 +16,7 @@ use base qw(Net::AMQP::Frame::Header);
 
 __PACKAGE__->type_id(5);
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 =head1 SEE ALSO
 

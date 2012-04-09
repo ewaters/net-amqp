@@ -17,7 +17,7 @@ use Net::AMQP::Protocol::Base;
 use XML::LibXML;
 use File::Path;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 our ($VERSION_MAJOR, $VERSION_MINOR, %spec);
 
 =head1 CLASS METHODS

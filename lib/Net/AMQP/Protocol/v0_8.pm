@@ -42,7 +42,10 @@ It is to be used in conjunction with client or server software that does the act
 use strict;
 use warnings;
 
+use Net::AMQP;
+
 sub import {
+    return if defined $Net::AMQP::Protocol::VERSION_MAJOR; # do not load twice
     load();
 }
 

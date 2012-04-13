@@ -71,7 +71,7 @@ sub deserialize {
 #
 #  Benchmark: timing 5000 iterations of deserialize, serialize  ...
 #  deserialize:  1 wallclock secs ( 0.94 usr +  0.00 sys =  0.94 CPU) @ 5319.15/s (n=5000)
-#  serialize  :  1 wallclock secs ( 0.98 usr +  0.00 sys =  0.98 CPU) @ 5102.04/s (n=5000)
+#  serialize  :  1 wallclock secs ( 0.92 usr +  0.01 sys =  0.93 CPU) @ 5376.34/s (n=5000)
 
 my $raw_frames = serialize();
 

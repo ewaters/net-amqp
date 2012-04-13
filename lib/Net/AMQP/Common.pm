@@ -46,10 +46,6 @@ The following are available for exporting by name or by ':all'.  All the 'pack_*
 
 =item I<unpack_field_array>
 
-=item I<pack_argument>
-
-=item I<unpack_argument>
-
 =item I<%data_type_map>
 
 A mapping of the XML spec's data type names to our names ('longstr' => 'long_string')
@@ -66,7 +62,7 @@ use strict;
 use warnings;
 use base qw(Exporter);
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 our @EXPORT_OK = qw(
     pack_octet             unpack_octet
@@ -78,7 +74,6 @@ our @EXPORT_OK = qw(
     pack_long_string       unpack_long_string
     pack_field_table       unpack_field_table
     pack_field_array       unpack_field_array
-    pack_argument          unpack_argument
     show_ascii
     %data_type_map
 );
@@ -100,25 +95,6 @@ our %data_type_map = (
     table     => 'field_table',
     array     => 'field_array',
 );
-
-my (%pack_subref, %unpack_subref);
-
-foreach my $type (values %data_type_map) {
-    no strict 'refs';
-    next if ($type eq 'bit');
-    $pack_subref{$type}   = *{'Net::AMQP::Common::pack_'   . $type};
-    $unpack_subref{$type} = *{'Net::AMQP::Common::unpack_' . $type};
-}
-
-sub pack_argument {
-    my $type = shift;
-    $pack_subref{$type}->(@_);
-}
-
-sub unpack_argument {
-    my $type = shift;
-    $unpack_subref{$type}->(@_);
-}
 
 sub pack_octet {
     my $int = shift;

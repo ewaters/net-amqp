@@ -17,7 +17,7 @@ use Net::AMQP::Protocol::Base;
 use XML::LibXML;
 use File::Path;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 our ($VERSION_MAJOR, $VERSION_MINOR, %spec);
 
 =head1 CLASS METHODS
@@ -213,11 +213,13 @@ package $method_class_name;
 use strict;
 use warnings;
 use base qw(Net::AMQP::Protocol::Base);
+
+sub class_id  { return $class_spec->{class_id}   }
+sub method_id { return $method_spec->{method_id} }
+
 EOF
         die $@ if $@;
 
-        $method_class_name->class_id($class_spec->{class_id});
-        $method_class_name->method_id($method_spec->{method_id});
         $method_class_name->class_spec($class_spec);
         $method_class_name->method_spec($method_spec);
         $method_class_name->frame_arguments(\@frame_arguments);

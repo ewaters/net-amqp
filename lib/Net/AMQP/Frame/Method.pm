@@ -17,7 +17,6 @@ use Net::AMQP::Common qw(:all);
 use Carp;
 
 BEGIN {
-    __PACKAGE__->mk_classdata('registered_method_classes' => {});
     __PACKAGE__->mk_accessors(qw(
         class_id
         method_id
@@ -26,7 +25,7 @@ BEGIN {
 }
 __PACKAGE__->type_id(1);
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 =head1 OBJECT METHODS
 
@@ -50,25 +49,36 @@ Exposes the L<Net::AMQP::Protocol::Base> object that this frame wraps
 
 =cut
 
+my $Registered_method_classes = {};
+
 sub register_method_class {
     my ($self_class, $method_class) = @_;
 
     my ($class_id, $method_id) = ($method_class->class_id, $method_class->method_id);
     my $key = join ':', $class_id, $method_id;
-    my $registered = $self_class->registered_method_classes;
 
-    if (my $exists = $registered->{$key}) {
+    if (exists $Registered_method_classes->{$key}) {
+        my $exists = $Registered_method_classes->{$key}->{class};
         croak "Can't register method class for $key: already used by '$exists'";
     }
 
-    $registered->{$key} = $method_class;
-}
+    my $arguments = $method_class->frame_arguments;
+    my (@frame_args, @pack_args, @unpack_args);
 
-sub registered_method_class {
-    my ($self_class, $class_id, $method_id) = @_;
-    my $key = join ':', $class_id, $method_id;
-    my $registered = $self_class->registered_method_classes;
-    return $registered->{$key};
+    for (my $i = 0; $i < @$arguments; $i += 2) {
+        my ($key, $type) = ($arguments->[$i], $arguments->[$i + 1]);
+        no strict 'refs';
+        push @frame_args,  $key;
+        push @pack_args,   ($type eq 'bit') ? 'bit' : *{'Net::AMQP::Common::pack_'   . $type};
+        push @unpack_args, ($type eq 'bit') ? 'bit' : *{'Net::AMQP::Common::unpack_' . $type};
+    }
+
+    $Registered_method_classes->{$key} = {
+        class       => $method_class,
+        frame_args  => \@frame_args,
+        pack_args   => \@pack_args,
+        unpack_args => \@unpack_args,
+    };
 }
 
 sub parse_payload {
@@ -78,46 +88,44 @@ sub parse_payload {
 
     my ($class_id, $method_id) = unpack 'nn', substr $$payload_ref, 0, 4, '';
     my $key = join ':', $class_id, $method_id;
-    my $method_class = $self->registered_method_classes->{$key};
-    if (! $method_class) {
-        croak "Failed to find a method class to handle $key";
-    }
 
-    my $arguments = $method_class->frame_arguments;
+    my $registered = $Registered_method_classes->{$key} or
+                     croak "Failed to find a method class to handle $key";
 
+    my $method_class = $registered->{class};
+    my $arguments    = $registered->{frame_args};
+    my $unpack_args  = $registered->{unpack_args};
     my %method_frame;
-    for (my $i = 0; $i <= $#{ $arguments }; $i += 2) {
-        my ($key, $type) = ($arguments->[$i], $arguments->[$i + 1]);
 
-        my $value;
+    for (my $i = 0; $i < @$arguments; $i++) {
 
-        if ($type eq 'bit') {
-            my @bit_keys = ($key);
+        if ($unpack_args->[$i] eq 'bit') {
 
-            # Group all following bits together into octets, up to 8
-            while (($i + 3) <= $#{ $arguments } && $arguments->[$i + 3] eq 'bit') {
-                $i += 2;
-                push @bit_keys, $arguments->[$i];
-                last if int @bit_keys == 8;
+            # Unpack next octet
+            my @bits = split '', unpack("b8", substr($$payload_ref, 0, 1, ''));
+
+            while (1) {
+
+                $method_frame{$arguments->[$i]} = shift @bits;
+
+                # Group all following bits together into octets, up to 8
+                last unless ($i+1 < @$arguments && $unpack_args->[$i+1] eq 'bit');
+                last unless @bits;
+                $i++;
             }
-
-            # Unpack the octet and set the values
-            my $byte = unpack_octet($payload_ref);
-            for (my $j = 0; $j <= $#bit_keys; $j++) {
-                $value = ($byte & 1 << $j) ? 1 : 0;
-                $method_frame{ $bit_keys[$j] } = $value;
-            }
-
+            
             next;
         }
 
-        $value = unpack_argument($type, $payload_ref);
+        # $unpack_args->[$i] is a coderef of Net::AMQP::Common::unpack_$type
+        my $value = $unpack_args->[$i]->( $payload_ref );
 
         if (! defined $value) {
-            die "Failed to unpack type '$type' for key '$key' for frame of type '$method_class' from input '$$payload_ref'";
+            my ($key, $unpacker) = ($arguments->[$i], $unpack_args->[$i]);
+            die "Failed to unpack key '$key' with $unpacker for frame of type '$method_class' from input '$$payload_ref'";
         }
 
-        $method_frame{$key} = $value;
+        $method_frame{$arguments->[$i]} = $value;
     }
 
     $self->method_frame($method_class->new(%method_frame));
@@ -128,43 +136,47 @@ sub to_raw_payload {
 
     my $method_frame = $self->method_frame;
 
-    $self->class_id( $method_frame->class_id ) unless defined $self->class_id;
-    $self->method_id( $method_frame->method_id ) unless defined $self->method_id;
+    my $class_id  = $self->class_id;
+    my $method_id = $self->method_id;
+
+    $class_id  = $self->class_id(  $method_frame->class_id )  unless defined $class_id;
+    $method_id = $self->method_id( $method_frame->method_id ) unless defined $method_id;
 
     my $response_payload = '';
-    $response_payload .= pack_short_integer($self->class_id);
-    $response_payload .= pack_short_integer($self->method_id);
+    $response_payload .= pack_short_integer($class_id);
+    $response_payload .= pack_short_integer($method_id);
 
-    my $arguments = $method_frame->frame_arguments;
-    for (my $i = 0; $i <= $#{ $arguments }; $i += 2) {
-        my ($key, $type) = ($arguments->[$i], $arguments->[$i + 1]);
+    my $key = join ':', $class_id, $method_id;
+    my $registered = $Registered_method_classes->{$key};
+    my $arguments  = $registered->{frame_args};
+    my $pack_args  = $registered->{pack_args};
 
-        my $value;
+    for (my $i = 0; $i < @$arguments; $i++) {
 
-        if ($type eq 'bit') {
-            # Group all following bits together into octets, up to 8
-            my @bits = ($method_frame->{$key});
-            while (($i + 3) <= $#{ $arguments } && $arguments->[$i + 3] eq 'bit') {
-                $i += 2;
-                push @bits, $method_frame->{ $arguments->[$i] };
-                last if int @bits == 8;
+        if ($pack_args->[$i] eq 'bit') {
+
+            my $bits = '';           
+
+            while (1) {
+
+                $bits .= $method_frame->{$arguments->[$i]} ? '1' : '0';
+
+                # Group all following bits together into octets, up to 8
+                last unless ($i+1 < @$arguments && $pack_args->[$i+1] eq 'bit');
+                last unless (length $bits < 8);
+                $i++;
             }
-
-            # Fill up the bits in the byte, starting from the low bit in each octet (4.2.5.2 Bits)
-            my $byte = 0;
-            for (my $j = 0; $j <= 7; $j++) {
-                $byte |= 1 << $j if $bits[$j];
-            }
-
-            $value = pack_octet($byte);
+            
+            $response_payload .= pack("b8", $bits);
+            next;
         }
 
-        if (! defined $value) {
-            $value = pack_argument($type, $method_frame->{$key});
-        }
+        # $pack_args->[$i] is a coderef of Net::AMQP::Common::pack_$type
+        my $value = $pack_args->[$i]->( $method_frame->{$arguments->[$i]} );
 
         if (! defined $value) {
-            die "Failed to pack type '$type' for key '$key' for frame of type '".ref($method_frame)."' from input '$$method_frame{$key}'";
+            my ($key, $packer) = ($arguments->[$i], $pack_args->[$i]);
+            die "Failed to pack key '$key' with $packer for frame of type '".ref($method_frame)."' from input '$$method_frame{$key}'";
         }
 
         $response_payload .= $value;

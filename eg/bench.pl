@@ -70,8 +70,8 @@ sub deserialize {
 # On my old mobile Core Duo 1.66 Ghz, I got:
 #
 #  Benchmark: timing 5000 iterations of deserialize, serialize  ...
-#  deserialize:  1 wallclock secs ( 1.19 usr +  0.00 sys =  1.19 CPU) @ 4201.68/s (n=5000)
-#  serialize  :  2 wallclock secs ( 1.27 usr +  0.00 sys =  1.27 CPU) @ 3937.01/s (n=5000)
+#  deserialize:  1 wallclock secs ( 0.94 usr +  0.00 sys =  0.94 CPU) @ 5319.15/s (n=5000)
+#  serialize  :  1 wallclock secs ( 0.98 usr +  0.00 sys =  0.98 CPU) @ 5102.04/s (n=5000)
 
 my $raw_frames = serialize();
 

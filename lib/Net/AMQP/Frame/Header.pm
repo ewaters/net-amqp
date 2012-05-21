@@ -17,7 +17,6 @@ use Net::AMQP::Common qw(:all);
 use Carp qw(croak cluck);
 
 BEGIN {
-    __PACKAGE__->mk_classdata('registered_header_classes' => {});
     __PACKAGE__->mk_accessors(qw(
         class_id
         weight
@@ -27,7 +26,7 @@ BEGIN {
 }
 __PACKAGE__->type_id(2);
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 =head1 OBJECT METHODS
 
@@ -49,17 +48,35 @@ Exposes the L<Net::AMQP::Protocol::Base> object that this frame wraps
 
 =cut
 
+my $Registered_header_classes = {};
+
 sub register_header_class {
     my ($self_class, $header_class) = @_;
 
     my $class_id = $header_class->class_id;
-    my $registered = $self_class->registered_header_classes;
 
-    if (my $exists = $registered->{$class_id}) {
+    if (exists $Registered_header_classes->{$class_id}) {
+        my $exists = $Registered_header_classes->{$class_id}->{class};
         croak "Can't register header class for $class_id: already used by '$exists'";
     }
 
-    $registered->{$class_id} = $header_class;
+    my $arguments = $header_class->frame_arguments;
+    my (@frame_args, @pack_args, @unpack_args);
+
+    for (my $i = 0; $i < @$arguments; $i += 2) {
+        my ($key, $type) = ($arguments->[$i], $arguments->[$i + 1]);
+        no strict 'refs';
+        push @frame_args,  $key;
+        push @pack_args,   ($type eq 'bit') ? 'bit' : *{'Net::AMQP::Common::pack_'   . $type};
+        push @unpack_args, ($type eq 'bit') ? 'bit' : *{'Net::AMQP::Common::unpack_' . $type};
+    }
+
+    $Registered_header_classes->{$class_id} = {
+        class       => $header_class,
+        frame_args  => \@frame_args,
+        pack_args   => \@pack_args,
+        unpack_args => \@unpack_args,
+    };
 }
 
 sub parse_payload {
@@ -71,40 +88,35 @@ sub parse_payload {
     $self->weight(    unpack_short_integer($payload_ref) );
     $self->body_size( unpack_long_long_integer($payload_ref) );
 
-    my $header_class = $self->registered_header_classes->{$self->class_id};
-    if (! $header_class) {
-        croak "Failed to find a header class class to handle ".$self->class_id;
-    }
+    my $registered = $Registered_header_classes->{ $self->class_id } or
+                     croak "Failed to find a header class to handle ".$self->class_id;
 
-    # Unpack the property flags
-    my @fields_set;
-    while (1) {
-        my $property_flag = unpack_short_integer($payload_ref);
-
-        my @fields_15;
-        for (my $i = 0; $i <= 14; $i++) {
-            $fields_15[$i] = ($property_flag & 1 << (15 - $i)) ? 1 : 0;
-        }
-        push @fields_set, @fields_15;
-        
-        # If bit 0 is true, there are more bytes to unpack
-        last unless $property_flag & 1 << 0;
-    }
-
+    my $header_class = $registered->{class};
+    my $arguments    = $registered->{frame_args};
+    my $unpack_args  = $registered->{unpack_args};
     my %header_frame;
-    my $arguments = $header_class->frame_arguments;
-    for (my $i = 0; $i <= $#{ $arguments }; $i += 2) {
-        my ($key, $type) = ($arguments->[$i], $arguments->[$i + 1]);
-        my $is_set = shift @fields_set;
-        next unless $is_set;
+    my @fields_set;
 
-        my $value = unpack_argument($type, $payload_ref);
+    while (1) {
+        # Unpack property flags
+        push @fields_set, split '', unpack("B16", substr($$payload_ref, 0, 2, ''));
+        # If bit 0 is true, there are more bytes to unpack
+        last unless (pop @fields_set);
+    }
+
+    for (my $i = 0; $i < @$arguments; $i++) {
+
+        next unless ($fields_set[$i]);
+
+        # $unpack_args->[$i] is a coderef of Net::AMQP::Common::unpack_$type
+        my $value = $unpack_args->[$i]->( $payload_ref );
 
         if (! defined $value) {
-            die "Failed to unpack type '$type' for key '$key' for frame of type '$header_class' from input '$$payload_ref'";
+            my ($key, $unpacker) = ($arguments->[$i], $unpack_args->[$i]);
+            die "Failed to unpack key '$key' with $unpacker for frame of type '$header_class' from input '$$payload_ref'";
         }
 
-        $header_frame{$key} = $value;
+        $header_frame{$arguments->[$i]} = $value;
     }
 
     $self->header_frame($header_class->new(%header_frame));
@@ -115,53 +127,51 @@ sub to_raw_payload {
 
     my $header_frame = $self->header_frame;
 
-    $self->class_id( $header_frame->class_id ) unless defined $self->class_id;
+    my $class_id = $self->class_id;
+    $class_id = $self->class_id( $header_frame->class_id ) unless defined $class_id;
 
     my $response_payload = '';
-    $response_payload .= pack_short_integer($self->class_id);
+    $response_payload .= pack_short_integer($class_id);
     $response_payload .= pack_short_integer($self->weight);
     $response_payload .= pack_long_long_integer($self->body_size);
 
-    my (@values, @fields_set);
+    my $registered = $Registered_header_classes->{$class_id};
+    my $arguments  = $registered->{frame_args};
+    my $pack_args  = $registered->{pack_args};
+    my $raw_values = '';
+    my $fields_set = '';
 
-    my $arguments = $header_frame->frame_arguments;
-    for (my $i = 0; $i <= $#{ $arguments }; $i += 2) {
-        my ($key, $type) = ($arguments->[$i], $arguments->[$i + 1]);
+    for (my $i = 0; $i < @$arguments; $i++) {
 
-        if (! defined $header_frame->{$key}) {
-            push @fields_set, 0;
+        if (! defined $header_frame->{$arguments->[$i]}) {
+            $fields_set .= '0';
             next;
         }
         else {
-            push @fields_set, 1;
+            $fields_set .= '1';
         }
 
-        my $value = pack_argument($type, $header_frame->{$key});
+        # $pack_args->[$i] is a coderef of Net::AMQP::Common::pack_$type
+        my $value = $pack_args->[$i]->( $header_frame->{$arguments->[$i]} );
 
         if (! defined $value) {
-            die "Failed to pack type '$type' for key '$key' for frame of type '".ref($header_frame)."' from input '$$header_frame{$key}'";
+            my ($key, $packer) = ($arguments->[$i], $pack_args->[$i]);
+            die "Failed to pack key '$key' with $packer for frame of type '".ref($header_frame)."' from input '$$header_frame{$key}'";
         }
 
-        push @values, $value;
+        $raw_values .= $value;
     }
 
-    while (my @fields_15 = splice @fields_set, 0, 15, ()) {
-        my $property_flag = 0;
-                                        
-        for (my $i = 0; $i <= 14; $i++) {
-            next unless $fields_15[$i];
-            #print "Setting bit ".(15 - $i)." for field $i\n";
-            $property_flag |= 1 << (15 - $i);
-        }            
-        if (@fields_set) {
-            #print "Setting last bit (0) as further flags follow\n";
-            $property_flag |= 1 << 0;
-        }
-
-        $response_payload .= pack_short_integer($property_flag);
+    while (length $fields_set) {
+        # Pack property flags
+        my $flags = substr($fields_set, 0, 15, '');
+        $flags .= '0' x (15 - length $flags);
+        # Set bit 0 if there are more bits to pack
+        $flags .= (length $fields_set) ? '1' : '0';
+        $response_payload .= pack("B16", $flags);
     }
 
-    $response_payload .= $_ foreach @values;
+    $response_payload .= $raw_values;
 
     return $response_payload;
 }

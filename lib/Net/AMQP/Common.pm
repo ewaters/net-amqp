@@ -227,10 +227,15 @@ sub pack_field_array {
 }
 
 sub _pack_field_value {
-    my ($value) = @_;
+    my ($value) = @_;    
     if (not ref $value) {
-        # FIXME - assuming that all values are string values
-        'S' . pack_long_string($value)
+        if ($value =~ /^\d+\z/) {
+            # Unsigned int
+            'I' . pack_long_integer($value)
+        } else {
+            # FIXME - assuming that all other values are string values
+            'S' . pack_long_string($value)
+        }
     }
     elsif (ref($value) eq 'HASH') {
         'F' . pack_field_table($value)

@@ -19,7 +19,7 @@ use File::Path;
 use File::Spec;
 
 our $VERSION = 0.04;
-our ($VERSION_MAJOR, $VERSION_MINOR, %spec);
+our ($VERSION_MAJOR, $VERSION_MINOR, $VERSION_REVISION, %spec);
 
 =head1 CLASS METHODS
 
@@ -70,10 +70,11 @@ sub load_xml_spec {
     if ($root->nodeName ne 'amqp') {
         die "Invalid document node name ".$root->nodeName;
     }
-
-    $VERSION_MAJOR = $root->getAttribute('major');
-    $VERSION_MINOR = $root->getAttribute('minor');
     #print "Using spec from '" . $root->getAttribute('comment') . "'\n";
+
+    $VERSION_MAJOR    = $root->getAttribute('major');
+    $VERSION_MINOR    = $root->getAttribute('minor');
+    $VERSION_REVISION = $root->getAttribute('revision');
 
     foreach my $child ($root->childNodes) {
         my $nodeName = $child->nodeName;
@@ -197,6 +198,7 @@ sub _build_class {
 
             my $local_name = $field_spec->{name};
             $local_name =~ tr{ -}{_};
+            $local_name =~ tr{_}{}d if $local_name eq 'no_wait';  # AMQP spec is inconsistent
 
             push @frame_arguments, $local_name, $local_type;
         }

@@ -196,7 +196,7 @@ sub _build_class {
             }
 
             my $local_name = $field_spec->{name};
-            $local_name =~ s{ }{_}g;
+            $local_name =~ tr{ -}{_};
 
             push @frame_arguments, $local_name, $local_type;
         }

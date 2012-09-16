@@ -96,6 +96,17 @@ our %data_type_map = (
     array     => 'field_array',
 );
 
+sub pack_boolean {
+  my $bool = shift;
+  $bool = ($bool ? 1 : 0);
+  pack 'C', $bool;
+}
+
+sub unpack_boolean {
+  my $ref = shift;
+  unpack 'C', substr $$ref, 0, 1, '';
+}
+
 sub pack_octet {
     my $int = shift;
     $int = 0 unless defined $int;
@@ -237,6 +248,7 @@ my %_unpack_field_types = (
     T => sub { unpack_timestamp(@_) },
     F => sub { unpack_field_table(@_) },
     A => sub { unpack_field_array(@_) },
+    t => sub { unpack_boolean(@_) },
 );
 
 sub unpack_field_table {

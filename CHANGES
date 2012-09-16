@@ -1,3 +1,7 @@
+0.05  Sun Sep 16 12:08:14 EDT 2012
+	- Pack/unpack 't' field type from Brad Barden
+	- Support AMQP 0.9 from Chip Salzenberg [https://github.com/chipdude]
+
 0.04  Mon, 21 May 2012 12:20:13 -0400
     - More performance optimizations from José Micó [https://github.com/ewaters/net-amqp/pull/4]
 	- Pack unit values as unit in tables and arrays from Dan Conlon [https://github.com/ewaters/net-amqp/pull/5]

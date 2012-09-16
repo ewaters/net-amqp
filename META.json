@@ -4,7 +4,7 @@
       "Eric Waters <ewaters@gmail.com>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Module::Build version 0.4, CPAN::Meta::Converter version 2.120630",
    "license" : [
       "perl_5"
    ],
@@ -37,59 +37,59 @@
    "provides" : {
       "Net::AMQP" : {
          "file" : "lib/Net/AMQP.pm",
-         "version" : "0.04"
+         "version" : "0.05"
       },
       "Net::AMQP::Common" : {
          "file" : "lib/Net/AMQP/Common.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame" : {
          "file" : "lib/Net/AMQP/Frame.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame::Body" : {
          "file" : "lib/Net/AMQP/Frame/Body.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame::Header" : {
          "file" : "lib/Net/AMQP/Frame/Header.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame::Heartbeat" : {
          "file" : "lib/Net/AMQP/Frame/Heartbeat.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame::Method" : {
          "file" : "lib/Net/AMQP/Frame/Method.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame::OOBBody" : {
          "file" : "lib/Net/AMQP/Frame/OOBBody.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame::OOBHeader" : {
          "file" : "lib/Net/AMQP/Frame/OOBHeader.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame::OOBMethod" : {
          "file" : "lib/Net/AMQP/Frame/OOBMethod.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Frame::Trace" : {
          "file" : "lib/Net/AMQP/Frame/Trace.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Protocol" : {
          "file" : "lib/Net/AMQP/Protocol.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Protocol::Base" : {
          "file" : "lib/Net/AMQP/Protocol/Base.pm",
-         "version" : "0.04"
+         "version" : 0
       },
       "Net::AMQP::Protocol::v0_8" : {
          "file" : "lib/Net/AMQP/Protocol/v0_8.pm",
-         "version" : "0.04"
+         "version" : 0
       }
    },
    "release_status" : "stable",
@@ -98,5 +98,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.04"
+   "version" : "0.05"
 }

@@ -24,8 +24,6 @@ BEGIN {
     );
 }
 
-our $VERSION = 0.04;
-
 =head1 CLASS METHODS
 
 =head2 class_id

@@ -44,8 +44,6 @@ use warnings;
 
 use Net::AMQP;
 
-our $VERSION = 0.04;
-
 sub import {
     return if defined $Net::AMQP::Protocol::VERSION_MAJOR; # do not load twice
     load();

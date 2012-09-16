@@ -18,7 +18,6 @@ use XML::LibXML;
 use File::Path;
 use File::Spec;
 
-our $VERSION = 0.04;
 our ($VERSION_MAJOR, $VERSION_MINOR, $VERSION_REVISION, %spec);
 
 =head1 CLASS METHODS

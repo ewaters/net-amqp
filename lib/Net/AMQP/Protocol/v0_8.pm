@@ -3891,7 +3891,7 @@ localised reply text
       </field>
       <field name="if empty" type="bit">
     delete only if empty
-	<test>amq_queue_27</test>
+        <test>amq_queue_27</test>
         <doc>
       If set, the server will only delete the queue if it has no
       messages. If the queue is not empty the server raises a channel

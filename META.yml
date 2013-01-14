@@ -18,7 +18,7 @@ name: Net-AMQP
 provides:
   Net::AMQP:
     file: lib/Net/AMQP.pm
-    version: 0.05
+    version: 0.0501
   Net::AMQP::Common:
     file: lib/Net/AMQP/Common.pm
     version: 0
@@ -64,4 +64,4 @@ requires:
   XML::LibXML: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.05
+version: 0.0501

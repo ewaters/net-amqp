@@ -94,6 +94,21 @@ our %data_type_map = (
     array     => 'field_array',
 );
 
+package Net::AMQP::Common::Bool;
+use overload "bool" => sub {
+  return ${$_[0]};
+};
+
+sub new {
+  my ($class, $v) = @_;
+  return bless \$v, $class;
+}
+
+package Net::AMQP::Common;
+
+use constant true => Net::AMQP::Common::Bool->new( 1 );
+use constant false => Net::AMQP::Common::Bool->new( 0 );
+
 sub pack_boolean {
   my $bool = shift;
   $bool = ($bool ? 1 : 0);
@@ -213,7 +228,12 @@ sub pack_field_array {
 
 sub _pack_field_value {
     my ($value) = @_;    
-    if (not ref $value) {
+    my $ref = ref $value;
+
+    if ($ref eq 'Net::AMQP::Common::Bool') {
+        't' . pack_boolean($value)
+    }
+    elsif (not $ref ) {
         if ($value =~ /^\d+\z/) {
             # Unsigned int
             'I' . pack_long_integer($value)
@@ -222,10 +242,10 @@ sub _pack_field_value {
             'S' . pack_long_string($value)
         }
     }
-    elsif (ref($value) eq 'HASH') {
+    elsif ($ref eq 'HASH') {
         'F' . pack_field_table($value)
     }
-    elsif (ref($value) eq 'ARRAY') {
+    elsif ($ref eq 'ARRAY') {
         'A' . pack_field_array($value)
     }
     else {

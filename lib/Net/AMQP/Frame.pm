@@ -75,7 +75,7 @@ sub factory {
         $subclass = 'Body';
     }
     elsif ($args{type_id} == 8) {
-	$subclass = 'Heartbeat';
+        $subclass = 'Heartbeat';
     }
     else {
         croak "Unknown type_id $args{type_id}";

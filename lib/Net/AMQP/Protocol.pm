@@ -264,7 +264,7 @@ sub full_docs_to_dir {
             }
 
             my ($volume, $directories, undef) = File::Spec->splitpath($filename);
-			my $base_path = File::Spec->catfile($volume, $directories);
+            my $base_path = File::Spec->catfile($volume, $directories);
             -d $base_path || mkpath($base_path) || die "Can't mkpath $base_path: $!";
 
             open my $podfn, '>', $filename or die "Can't open '$filename' for writing: $!";

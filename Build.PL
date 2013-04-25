@@ -1,5 +1,7 @@
 use Module::Build;
 
+die "Perl 5.6 required" if $] < 5.006;
+
 my $build = Module::Build->new(
     module_name => 'Net::AMQP',
     license => 'perl',

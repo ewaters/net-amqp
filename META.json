@@ -4,7 +4,7 @@
       "Eric Waters <ewaters@gmail.com>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4, CPAN::Meta::Converter version 2.120630",
+   "generated_by" : "Module::Build version 0.4004, CPAN::Meta::Converter version 2.130880",
    "license" : [
       "perl_5"
    ],
@@ -23,13 +23,14 @@
       },
       "configure" : {
          "requires" : {
-            "Module::Build" : "0.4"
+            "Module::Build" : "0.40"
          }
       },
       "runtime" : {
          "requires" : {
             "Class::Accessor" : "0",
             "Class::Data::Inheritable" : "0",
+            "Scalar::Util" : "0",
             "XML::LibXML" : "0"
          }
       }
@@ -40,56 +41,58 @@
          "version" : "0.05"
       },
       "Net::AMQP::Common" : {
-         "file" : "lib/Net/AMQP/Common.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Common.pm"
       },
       "Net::AMQP::Frame" : {
-         "file" : "lib/Net/AMQP/Frame.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame.pm"
       },
       "Net::AMQP::Frame::Body" : {
-         "file" : "lib/Net/AMQP/Frame/Body.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame/Body.pm"
       },
       "Net::AMQP::Frame::Header" : {
-         "file" : "lib/Net/AMQP/Frame/Header.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame/Header.pm"
       },
       "Net::AMQP::Frame::Heartbeat" : {
-         "file" : "lib/Net/AMQP/Frame/Heartbeat.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame/Heartbeat.pm"
       },
       "Net::AMQP::Frame::Method" : {
-         "file" : "lib/Net/AMQP/Frame/Method.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame/Method.pm"
       },
       "Net::AMQP::Frame::OOBBody" : {
-         "file" : "lib/Net/AMQP/Frame/OOBBody.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame/OOBBody.pm"
       },
       "Net::AMQP::Frame::OOBHeader" : {
-         "file" : "lib/Net/AMQP/Frame/OOBHeader.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame/OOBHeader.pm"
       },
       "Net::AMQP::Frame::OOBMethod" : {
-         "file" : "lib/Net/AMQP/Frame/OOBMethod.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame/OOBMethod.pm"
       },
       "Net::AMQP::Frame::Trace" : {
-         "file" : "lib/Net/AMQP/Frame/Trace.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Frame/Trace.pm"
       },
       "Net::AMQP::Protocol" : {
-         "file" : "lib/Net/AMQP/Protocol.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Protocol.pm"
       },
       "Net::AMQP::Protocol::Base" : {
-         "file" : "lib/Net/AMQP/Protocol/Base.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Protocol/Base.pm"
       },
       "Net::AMQP::Protocol::v0_8" : {
-         "file" : "lib/Net/AMQP/Protocol/v0_8.pm",
-         "version" : 0
+         "file" : "lib/Net/AMQP/Protocol/v0_8.pm"
+      },
+      "Net::AMQP::Value" : {
+         "file" : "lib/Net/AMQP/Value.pm"
+      },
+      "Net::AMQP::Value::Boolean" : {
+         "file" : "lib/Net/AMQP/Value.pm"
+      },
+      "Net::AMQP::Value::Integer" : {
+         "file" : "lib/Net/AMQP/Value.pm"
+      },
+      "Net::AMQP::Value::String" : {
+         "file" : "lib/Net/AMQP/Value.pm"
+      },
+      "Net::AMQP::Value::Timestamp" : {
+         "file" : "lib/Net/AMQP/Value.pm"
       }
    },
    "release_status" : "stable",

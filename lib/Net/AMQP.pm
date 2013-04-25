@@ -44,6 +44,7 @@ use strict;
 use warnings;
 use Net::AMQP::Protocol;
 use Net::AMQP::Frame;
+use Net::AMQP::Value;
 use Carp;
 
 our $VERSION = 0.05;
@@ -90,7 +91,7 @@ sub parse_raw_frames {
 
 =head1 SEE ALSO
 
-L<POE::Component::Client::AMQP>
+L<Net::AMQP::Value>, L<POE::Component::Client::AMQP>
 
 =head1 TODO
 

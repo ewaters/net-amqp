@@ -13,6 +13,7 @@ lib/Net/AMQP/Frame/Trace.pm
 lib/Net/AMQP/Protocol.pm
 lib/Net/AMQP/Protocol/v0_8.pm
 lib/Net/AMQP/Protocol/Base.pm
+lib/Net/AMQP/Value.pm
 LICENSE
 MANIFEST			This list of files
 META.yml
@@ -26,6 +27,7 @@ spec/qpid.amqp0-8.xml
 t/01_basic.t
 t/02_ruby_protocol_doc.t
 t/03_standalone_0_8.t
-t/04_autodocs.t
+t/04_table.t
+t/50_autodocs.t
 eg/bench.pl
 Makefile.PL

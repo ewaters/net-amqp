@@ -1,3 +1,11 @@
+0.0502  Thu Apr 25 02:00:09 PDT 2013
+    - Require Perl 5.006 to get pack 'q' for quads.  C'mon, it's been over a decade now.
+    - Support packing and unpacking of full range of signed and unsigned integer values,
+        though broker differences may make their use problematic.
+    - Fix signedness of integer packing and unpacking (signed were treated as unsigned).
+    - Introduce Net::AMQP::Value::* classes to control packing of table values.
+        (And understand boolean values from the "boolean" class likewise.)
+
 0.0501  Sun Jan 13 23:31:34 PST 2013
     - Support Heartbeat frame type (upstream)
     - Non-public version

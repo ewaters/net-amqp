@@ -46,7 +46,7 @@ CLASS METHODS
     invalid input.
 
 SEE ALSO
-    POE::Component::Client::AMQP
+    Net::AMQP::Value, POE::Component::Client::AMQP
 
 TODO
     At the moment, only AMQP v0-8 is supported. Support for v0-10 and later

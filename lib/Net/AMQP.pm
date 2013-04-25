@@ -47,7 +47,7 @@ use Net::AMQP::Frame;
 use Net::AMQP::Value;
 use Carp;
 
-our $VERSION = 0.0501;
+our $VERSION = 0.0502;
 
 use constant {
     _HEADER_LEN => 7,  # 'CnN'

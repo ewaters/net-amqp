@@ -1,4 +1,5 @@
 package Net::AMQP::Common;
+use 5.006;
 
 =head1 NAME
 
@@ -30,9 +31,25 @@ The following are available for exporting by name or by ':all'.  All the 'pack_*
 
 =item I<unpack_long_long_integer>
 
+=item I<pack_unsigned_short_integer>
+
+=item I<unpack_unsigned_short_integer>
+
+=item I<pack_unsigned_long_integer>
+
+=item I<unpack_unsigned_long_integer>
+
+=item I<pack_unsigned_long_long_integer>
+
+=item I<unpack_unsigned_long_long_integer>
+
 =item I<pack_timestamp>
 
 =item I<unpack_timestamp>
+
+=item I<pack_boolean>
+
+=item I<unpack_boolean>
 
 =item I<pack_short_string>
 
@@ -43,6 +60,10 @@ The following are available for exporting by name or by ':all'.  All the 'pack_*
 =item I<unpack_field_table>
 
 =item I<pack_field_array>
+
+Tables and arrays sometimes require explicit typing.  See
+L<Net::AMQP::Value>.  Also, in tables and arrays booleans from the
+L<boolean> module are sent as AMQP booleans.
 
 =item I<unpack_field_array>
 
@@ -60,18 +81,30 @@ A helper routine that, given a binary string, returns a string of each byte repr
 
 use strict;
 use warnings;
+use Scalar::Util qw( blessed reftype );
+use Net::AMQP::Value;
 use base qw(Exporter);
 
+BEGIN {
+    *_big = (pack('n', 1) eq pack('s', 1))
+      ? sub { shift }
+      : sub { scalar reverse shift };
+}
+
 our @EXPORT_OK = qw(
-    pack_octet             unpack_octet
-    pack_short_integer     unpack_short_integer
-    pack_long_integer      unpack_long_integer
-    pack_long_long_integer unpack_long_long_integer
-    pack_timestamp         unpack_timestamp
-    pack_short_string      unpack_short_string
-    pack_long_string       unpack_long_string
-    pack_field_table       unpack_field_table
-    pack_field_array       unpack_field_array
+    pack_octet                      unpack_octet
+    pack_short_integer              unpack_short_integer
+    pack_long_integer               unpack_long_integer
+    pack_long_long_integer          unpack_long_long_integer
+    pack_unsigned_short_integer     unpack_unsigned_short_integer
+    pack_unsigned_long_integer      unpack_unsigned_long_integer
+    pack_unsigned_long_long_integer unpack_unsigned_long_long_integer
+    pack_timestamp                  unpack_timestamp
+    pack_boolean                    unpack_boolean
+    pack_short_string               unpack_short_string
+    pack_long_string                unpack_long_string
+    pack_field_table                unpack_field_table
+    pack_field_array                unpack_field_array
     show_ascii
     %data_type_map
 );
@@ -94,67 +127,26 @@ our %data_type_map = (
     array     => 'field_array',
 );
 
-sub pack_boolean {
-  my $bool = shift;
-  $bool = ($bool ? 1 : 0);
-  pack 'C', $bool;
-}
+sub pack_boolean                       {      pack 'C', shift() ? 1 : 0 }
+sub pack_octet                         {      pack 'C', shift || 0 }
+sub pack_short_integer                 { _big pack 's', shift || 0 }
+sub pack_long_integer                  { _big pack 'l', shift || 0 }
+sub pack_long_long_integer             { _big pack 'q', shift || 0 }
+sub pack_unsigned_short_integer        {      pack 'n', shift || 0 }
+sub pack_unsigned_long_integer         {      pack 'N', shift || 0 }
+sub pack_unsigned_long_long_integer    { _big pack 'Q', shift || 0 }
 
-sub unpack_boolean {
-  my $ref = shift;
-  unpack 'C', substr $$ref, 0, 1, '';
-}
+sub unpack_boolean                     { unpack 'C',      substr ${+shift}, 0, 1, '' }
+sub unpack_octet                       { unpack 'C',      substr ${+shift}, 0, 1, '' }
+sub unpack_short_integer               { unpack 's', _big substr ${+shift}, 0, 2, '' }
+sub unpack_long_integer                { unpack 'l', _big substr ${+shift}, 0, 4, '' }
+sub unpack_long_long_integer           { unpack 'q', _big substr ${+shift}, 0, 8, '' }
+sub unpack_unsigned_short_integer      { unpack 'n',      substr ${+shift}, 0, 2, '' }
+sub unpack_unsigned_long_integer       { unpack 'N',      substr ${+shift}, 0, 4, '' }
+sub unpack_unsigned_long_long_integer  { unpack 'Q', _big substr ${+shift}, 0, 8, '' }
 
-sub pack_octet {
-    my $int = shift;
-    $int = 0 unless defined $int;
-    pack 'C', $int;
-}
-
-sub unpack_octet {
-    my $ref = shift;
-    unpack 'C', substr $$ref, 0, 1, '';
-}
-
-sub pack_short_integer {
-    my $int = shift;
-    $int = 0 unless defined $int;
-    pack 'n', $int;
-}
-
-sub unpack_short_integer {
-    my $ref = shift;
-    unpack 'n', substr $$ref, 0, 2, '';
-}
-
-sub pack_long_integer {
-    my $int = shift;
-    $int = 0 unless defined $int;
-    pack 'N', $int;
-}
-
-sub unpack_long_integer {
-    my $ref = shift;
-    unpack 'N', substr $$ref, 0, 4, '';
-}
-
-sub pack_long_long_integer {
-    my $value = shift;
-    $value = 0 unless defined $value;
-
-    my $lower = $value & 0xffffffff;
-    my $upper = ($value & ~0xffffffff) >> 32;
-    pack 'NN', $upper, $lower;
-}
-
-sub unpack_long_long_integer {
-    my $ref = shift;
-    my ($upper, $lower) = unpack 'NN', substr $$ref, 0, 8, '';
-    return $upper << 32 | $lower;
-}
-
-sub pack_timestamp   { pack_long_long_integer(@_)   }
-sub unpack_timestamp { unpack_long_long_integer(@_) }
+sub pack_timestamp   { goto &pack_unsigned_long_long_integer }
+sub unpack_timestamp { goto &unpack_unsigned_long_long_integer }
 
 sub pack_short_string {
     my $str = shift;
@@ -164,7 +156,7 @@ sub pack_short_string {
 
 sub unpack_short_string {
     my $input_ref = shift;
-    my ($string_length) = unpack 'C', substr $$input_ref, 0, 1, '';
+    my $string_length = unpack 'C', substr $$input_ref, 0, 1, '';
     return substr $$input_ref, 0, $string_length, '';
 }
 
@@ -182,7 +174,7 @@ sub pack_long_string {
 
 sub unpack_long_string {
     my $input_ref = shift;
-    my ($string_length) = unpack 'N', substr $$input_ref, 0, 4, '';
+    my $string_length = unpack 'N', substr $$input_ref, 0, 4, '';
     return substr $$input_ref, 0, $string_length, '';
 }
 
@@ -212,41 +204,49 @@ sub pack_field_array {
 }
 
 sub _pack_field_value {
-    my ($value) = @_;    
-    if (not ref $value) {
-        if ($value =~ /^\d+\z/) {
-            # Unsigned int
-            'I' . pack_long_integer($value)
+    my ($value) = @_;
+    if (not defined $value) {
+        'V'
+    }
+    elsif (not ref $value) {
+        if ($value =~ /^-?\d+\z/) {
+            'I' . pack_long_integer($value);
         } else {
             # FIXME - assuming that all other values are string values
-            'S' . pack_long_string($value)
+            'S' . pack_long_string($value);
         }
     }
     elsif (ref($value) eq 'HASH') {
-        'F' . pack_field_table($value)
+        'F' . pack_field_table($value);
     }
     elsif (ref($value) eq 'ARRAY') {
-        'A' . pack_field_array($value)
+        'A' . pack_field_array($value);
+    }
+    elsif (ref($value) eq 'boolean') {
+        't' . pack_boolean($value);
+    }
+    elsif (blessed($value) && $value->isa('Net::AMQP::Value')) {
+        $value->field_packed;
     }
     else {
-        die "No way to pack $value into field table";
+        die "No way to pack $value into AMQP array or table";
     }
 }
 
-
 my %_unpack_field_types = (
-    S => sub { unpack_long_string(@_) },
-    I => sub { unpack_long_integer(@_) }, # FIXME - This should be signed; is this supported here?
+    V => sub { undef },
+    S => \&unpack_long_string,
+    I => \&unpack_long_integer,
     D => sub {
         my $input_ref = shift;
         my $exp = unpack_octet($input_ref);
         my $num = unpack_long_integer($input_ref);
         $num / 10.0 ** $exp;
     },
-    T => sub { unpack_timestamp(@_) },
-    F => sub { unpack_field_table(@_) },
-    A => sub { unpack_field_array(@_) },
-    t => sub { unpack_boolean(@_) },
+    F => \&unpack_field_table,
+    A => \&unpack_field_array,
+    T => \&unpack_timestamp,
+    t => \&unpack_boolean,
 );
 
 sub unpack_field_table {

@@ -22,6 +22,7 @@ README
 CHANGES
 spec/amqp0-8.xml
 spec/amqp0-9.xml
+spec/amqp0-9-1.xml
 spec/amqp0-10.xml
 spec/qpid.amqp0-8.xml
 t/01_basic.t

@@ -6,7 +6,8 @@
     - Introduce Net::AMQP::Value::* classes to control packing of table values.
     - In tables, pack and unpack undefs as void and values from the "boolean" class as bools.
     - Support decoding the Heartbeat frame type.
-    - Document that AMQP 0-9 and 0-10 specs can be used, though support is not complete.
+    - Include AMQP 0-9-1 spec.
+    - Document that AMQP 0-9, 0-9-1, and 0-10 specs can be used, though support is not complete.
     - New co-maintainer Chip Salzenberg.
 
 0.05  Sun Sep 16 12:08:14 EDT 2012

@@ -91,17 +91,43 @@ sub parse_raw_frames {
 
 =head1 SEE ALSO
 
-L<Net::AMQP::Value>, L<POE::Component::Client::AMQP>
+L<Net::AMQP::Value>, L<Net::RabbitMQ>, L<AnyEvent::RabbitMQ>,
+L<Net::RabbitFoot>, L<POE::Component::Client::AMQP>
+
+=head1 AMQP VERSIONS
+
+AMQP 0-8 is fully supported.
+
+AMQP 0-9, 0-9-1, and 0-10 are usably supported.  There are interoperability
+issues with table encodings because the standard disagrees with the dialects of
+major implementations (RabbitMQ and Qpid).  For now, Net::AMQP limits itself to
+universally agreed table elements.  See
+L<http://www.rabbitmq.com/amqp-0-9-1-errata.html> for details.
+
+AMQP 1.0 has not been tested.
 
 =head1 TODO
 
-At the moment, only AMQP v0-8 is supported.  Support for v0-10 and later v1-0 is hoped for.
+Address the dialect problem, either via modified spec files that completely
+control the wire protocol, or by programmatic request.  The former has
+precedent (viz L<spec/qpid.amqp0-8.xml>), but could cause a combinatorial explosion
+as more brokers and versions are added.  The latter adds interface complexity.
+
+=head1 QUOTES
+
+"All problems in computer science can be solved by another level of indirection." -- David Wheeler's observation
+
+"...except for the problem of too many layers of indirection." -- Kevlin Henney's corollary
 
 =head1 COPYRIGHT
 
-Copyright (c) 2009 Eric Waters and XMission LLC (http://www.xmission.com/).  All rights reserved.  This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+Copyright (c) 2009 Eric Waters and XMission LLC (http://www.xmission.com/).
+Copyright (c) 2012, 2013 Chip Salzenberg and Topsy Labs (http://labs.topsy.com/).
+All rights reserved.
 
-The full text of the license can be found in the LICENSE file included with this module.
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.  The full text of the license can be found in
+the LICENSE file included with this module.
 
 =head1 AUTHOR
 

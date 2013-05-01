@@ -5,11 +5,13 @@
     - Fix signedness of integer packing and unpacking (signed were treated as unsigned).
     - Introduce Net::AMQP::Value::* classes to control packing of table values.
     - In tables, pack and unpack undefs as void and values from the "boolean" class as bools.
-    - Support Heartbeat frame type (from upstream)
+    - Support decoding the Heartbeat frame type.
+    - Document that AMQP 0-9 and 0-10 specs can be used, though support is not complete.
+    - New co-maintainer Chip Salzenberg.
 
 0.05  Sun Sep 16 12:08:14 EDT 2012
     - Pack/unpack 't' field type from Brad Barden
-    - Support AMQP 0.9 from Chip Salzenberg [https://github.com/chipdude]
+    - Support AMQP 0-9 from Chip Salzenberg [https://github.com/chipdude]
 
 0.04  Mon, 21 May 2012 12:20:13 -0400
     - More performance optimizations from José Micó [https://github.com/ewaters/net-amqp/pull/4]

@@ -38,7 +38,7 @@
    "provides" : {
       "Net::AMQP" : {
          "file" : "lib/Net/AMQP.pm",
-         "version" : "0.05"
+         "version" : "0.06"
       },
       "Net::AMQP::Common" : {
          "file" : "lib/Net/AMQP/Common.pm"
@@ -101,5 +101,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.05"
+   "version" : "0.06"
 }

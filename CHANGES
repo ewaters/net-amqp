@@ -1,4 +1,4 @@
-0.06  <tbd>
+0.06  Wed May  1 19:37:50 PDT 2013
     - Require Perl 5.006 to get pack 'q' for quads.  C'mon, it's been over a decade now.
     - Support packing and unpacking of full range of signed and unsigned integer values,
         though broker differences may make their use problematic.

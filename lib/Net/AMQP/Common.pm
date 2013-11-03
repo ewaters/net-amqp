@@ -85,6 +85,8 @@ use Scalar::Util qw( blessed reftype );
 use Net::AMQP::Value;
 use base qw(Exporter);
 
+use Encode;
+
 BEGIN {
     *_big = (pack('n', 1) eq pack('s', 1))
       ? sub { shift }
@@ -151,6 +153,11 @@ sub unpack_timestamp { goto &unpack_unsigned_long_long_integer }
 sub pack_short_string {
     my $str = shift;
     $str = '' unless defined $str;
+
+    if (Encode::is_utf8($str) )
+    {
+        $str = Encode::encode_utf8($str);
+    }
     return pack('C', length $str) . $str;
 }
 
@@ -169,6 +176,10 @@ sub pack_long_string {
     }
     my $str = shift;
     $str = '' unless defined $str;
+    if (Encode::is_utf8($str) )
+    {
+        $str = Encode::encode_utf8($str);
+    }
     return pack('N', length $str) . $str;
 }
 

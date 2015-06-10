@@ -82,9 +82,7 @@ sub parse_raw_frames {
         }
 
         push @frames, Net::AMQP::Frame->factory(
-            type_id => $type_id,
-            channel => $channel,
-            payload => $payload,
+			$type_id, $channel, $payload,
         );
     }
     return @frames;

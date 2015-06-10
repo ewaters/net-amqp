@@ -135,13 +135,13 @@ sub to_raw_frame {
     my $self = shift;
     my $class = ref $self;
 
-    if (! defined $self->channel) {
-        $self->channel(0);
-    }
+	my $channel = ($self->channel || 0);
+	my $raw_payload = $self->to_raw_payload();
 
-    return pack('Cn', $self->type_id, $self->channel)
-        . pack_long_string($self->to_raw_payload())
-        . pack('C', 206);
+    return pack('CnN', $self->type_id, $channel, length($raw_payload))
+		# . pack_long_string($raw_payload) =  length($raw_payload) . $raw_payload 
+    	. $raw_payload
+        . "\x{ce}" # . "\x{ce}" = pack('C', 206); # faster, duration of pack() = 1usec
 }
 
 =head2 type_string

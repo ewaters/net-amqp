@@ -47,9 +47,9 @@ sub new {
 =head2 factory
 
   Net::AMQP::Frame->factory(
-    type_id => 1,
-    channel => 1,
-    payload => '',
+    $type_id, # type_id => 1,
+    $channel, # channel => 1,
+    $payload, # payload => '',
   );
 
 Will attempt to identify a L<Net::AMQP::Frame> subclass for further parsing, and will croak on failure.  Returns a L<Net::AMQP::Frame> subclass object.
@@ -57,32 +57,44 @@ Will attempt to identify a L<Net::AMQP::Frame> subclass for further parsing, and
 =cut
 
 sub factory {
-    my ($class, %args) = @_;
+    my ($class, $type_id, $channel, $payload) = @_;
 
-    unless (exists $args{type_id}) { croak "Mandatory parameter 'type_id' missing in call to Net::AMQP::Frame::factory"; }
-    unless (exists $args{channel}) { croak "Mandatory parameter 'channel' missing in call to Net::AMQP::Frame::factory"; }
-    unless (exists $args{payload}) { croak "Mandatory parameter 'payload' missing in call to Net::AMQP::Frame::factory"; }
-    unless (keys %args == 3)       { croak "Invalid parameter passed in call to Net::AMQP::Frame::factory"; }
+    unless (defined $type_id) { croak "Mandatory parameter 'type_id' missing in call to Net::AMQP::Frame::factory"; }
 
     my $subclass;
-    if ($args{type_id} == 1) {
-        $subclass = 'Method';
+    if ($type_id == 1) {
+        $subclass = 'Net::AMQP::Frame::Method';
     }
-    elsif ($args{type_id} == 2) {
-        $subclass = 'Header';
+    elsif ($type_id == 2) {
+        $subclass = 'Net::AMQP::Frame::Header';
     }
-    elsif ($args{type_id} == 3) {
-        $subclass = 'Body';
+    elsif ($type_id == 3) {
+		unless (defined $channel) { croak "Mandatory parameter 'channel' missing in call to Net::AMQP::Frame::factory"; }
+		unless (defined $payload) { croak "Mandatory parameter 'payload' missing in call to Net::AMQP::Frame::factory"; }
+
+		# see Net::AMQP::Frame::Body::parse_payload() - empty function
+		return bless {
+			type_id => $type_id,
+			channel => $channel,
+			payload => $payload,
+		}, 'Net::AMQP::Frame::Body';
     }
-    elsif ($args{type_id} == 8) {
-        $subclass = 'Heartbeat';
+    elsif ($type_id == 8) {
+        $subclass = 'Net::AMQP::Frame::Heartbeat';
     }
     else {
-        croak "Unknown type_id $args{type_id}";
+        croak "Unknown type_id $type_id";
     }
 
-    $subclass = 'Net::AMQP::Frame::' . $subclass;
-    my $object = bless \%args, $subclass;
+    unless (defined $channel) { croak "Mandatory parameter 'channel' missing in call to Net::AMQP::Frame::factory"; }
+    unless (defined $payload) { croak "Mandatory parameter 'payload' missing in call to Net::AMQP::Frame::factory"; }
+
+#@	my $object = bless \%args, $subclass;
+    my $object = bless {
+		type_id => $type_id,
+		channel => $channel,
+		payload => $payload,
+	}, $subclass;
     $object->parse_payload();
     return $object;
 }
@@ -123,13 +135,13 @@ sub to_raw_frame {
     my $self = shift;
     my $class = ref $self;
 
-    if (! defined $self->channel) {
-        $self->channel(0);
-    }
+	my $channel = ($self->channel || 0);
+	my $raw_payload = $self->to_raw_payload();
 
-    return pack('Cn', $self->type_id, $self->channel)
-        . pack_long_string($self->to_raw_payload())
-        . pack('C', 206);
+    return pack('CnN', $self->type_id, $channel, length($raw_payload))
+		# . pack_long_string($raw_payload) =  length($raw_payload) . $raw_payload 
+    	. $raw_payload
+        . "\x{ce}" # . "\x{ce}" = pack('C', 206); # faster, duration of pack() = 1usec
 }
 
 =head2 type_string

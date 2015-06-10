@@ -52,6 +52,7 @@ our $VERSION = 0.06;
 use constant {
     _HEADER_LEN => 7,  # 'CnN'
     _FOOTER_LEN => 1,  # 'C'
+	_HEADER_FOOTER_LEN => 8, # = _HEADER_LEN + _FOOTER_LEN
 };
 
 =head1 CLASS METHODS
@@ -68,9 +69,9 @@ sub parse_raw_frames {
     my ($class, $input_ref) = @_;
 
     my @frames;
-    while (length($$input_ref) >= _HEADER_LEN + _FOOTER_LEN) {
+    while (length($$input_ref) >= _HEADER_FOOTER_LEN) {
         my ($type_id, $channel, $size) = unpack 'CnN', $$input_ref;
-        last if length($$input_ref) < _HEADER_LEN + $size + _FOOTER_LEN;
+        last if length($$input_ref) < $size + _HEADER_FOOTER_LEN;
         substr $$input_ref, 0, _HEADER_LEN, '';
 
         my $payload = substr $$input_ref, 0, $size, '';
@@ -81,9 +82,7 @@ sub parse_raw_frames {
         }
 
         push @frames, Net::AMQP::Frame->factory(
-            type_id => $type_id,
-            channel => $channel,
-            payload => $payload,
+			$type_id, $channel, $payload,
         );
     }
     return @frames;

@@ -149,8 +149,7 @@ sub pack_timestamp   { goto &pack_unsigned_long_long_integer }
 sub unpack_timestamp { goto &unpack_unsigned_long_long_integer }
 
 sub pack_short_string {
-    my $str = shift;
-    $str = '' unless defined $str;
+    my $str = $_[0] || '';
     return pack('C', length $str) . $str;
 }
 
@@ -167,8 +166,7 @@ sub pack_long_string {
         # Here for Connection::StartOk->response
         return pack_field_table(@_);
     }
-    my $str = shift;
-    $str = '' unless defined $str;
+    my $str = $_[0] || '';
     return pack('N', length $str) . $str;
 }
 
@@ -179,15 +177,14 @@ sub unpack_long_string {
 }
 
 sub pack_field_table {
-    my $table = shift;
-    $table = {} unless defined $table;
-
+	my $table = $_[0] || {};
     my $table_packed = '';
-    foreach my $key (sort keys %$table) { # sort so I can compare raw frames
-        my $value = $table->{$key};
-        $table_packed .= pack_short_string($key);
-        $table_packed .= _pack_field_value($table->{$key});
-    }
+
+	while( my ($key, $val) = each %{$table}) {
+		$table_packed .= pack_short_string($key);
+		$table_packed .= _pack_field_value($val);
+	}
+
     return pack('N', length $table_packed) . $table_packed;
 }
 
@@ -234,19 +231,29 @@ sub _pack_field_value {
 }
 
 my %_unpack_field_types = (
-    V => sub { undef },
-    S => \&unpack_long_string,
-    I => \&unpack_long_integer,
+    A => \&unpack_field_array,
+    B => \&unpack_unsigned_short_integer,
+    b => \&unpack_short_integer,
     D => sub {
         my $input_ref = shift;
         my $exp = unpack_octet($input_ref);
         my $num = unpack_long_integer($input_ref);
         $num / 10.0 ** $exp;
     },
+    #d => \&unpack_double,
     F => \&unpack_field_table,
-    A => \&unpack_field_array,
+    #f => \&unpack_float,
+    I => \&unpack_long_integer,
+    i => \&unpack_unsigned_long_integer,
+    L => \&unpack_long_long_integer,
+    l => \&unpack_unsigned_long_long_integer,
+    S => \&unpack_long_string,
+    s => \&unpack_short_string,
     T => \&unpack_timestamp,
     t => \&unpack_boolean,
+    U => \&unpack_short_integer,
+    u => \&unpack_unsigned_short_integer,
+    V => sub { undef },
 );
 
 sub unpack_field_table {
